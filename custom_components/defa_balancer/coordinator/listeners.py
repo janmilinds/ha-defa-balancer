@@ -1,101 +1,140 @@
-"""
-Event listeners and callbacks for coordinator state changes.
-
-This module provides utilities for managing entity callbacks and event
-listeners that respond to coordinator state changes.
-
-Use cases:
-- Entity-specific update callbacks
-- State change notifications
-- Performance monitoring and metrics
-- Custom event handling for specific data changes
-"""
+"""Listener abstractions and UDP multicast implementation."""
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
+from abc import ABC, abstractmethod
+import asyncio
+from collections import deque
+from collections.abc import Iterable
+import socket
+import struct
 
+from custom_components.defa_balancer.api import BalancerPacket, parse_packet
 from custom_components.defa_balancer.const import LOGGER
 
 
-def create_entity_callback(entity_id: str, callback: Callable[[], Awaitable[None]]) -> Callable[[], Awaitable[None]]:
-    """
-    Create a wrapped callback for an entity with logging.
+class BalancerListener(ABC):
+    """Abstract listener for Balancer packets."""
 
-    Args:
-        entity_id: The ID of the entity this callback is for.
-        callback: The async callback function to wrap.
+    @abstractmethod
+    async def start(self) -> None:
+        """Start receiving packets."""
 
-    Returns:
-        A wrapped callback that includes logging.
+    @abstractmethod
+    async def stop(self) -> None:
+        """Stop receiving packets and release resources."""
 
-    Example:
-        >>> async def update():
-        ...     print("updating")
-        >>> wrapped = create_entity_callback("sensor.test", update)
-    """
+    @abstractmethod
+    def get_latest(self) -> list[BalancerPacket]:
+        """Return latest packet snapshot from internal buffer."""
 
-    async def wrapped_callback() -> None:
-        """Execute callback with error handling and logging."""
+
+class _DatagramProtocol(asyncio.DatagramProtocol):
+    """UDP protocol that parses incoming packets into a shared queue."""
+
+    def __init__(self, listener: UDPBalancerListener) -> None:
+        self._listener = listener
+
+    def datagram_received(self, data: bytes, addr: tuple[str, int]) -> None:
+        del addr
+        packet = parse_packet(data)
+        if packet is None:
+            return
+
+        if self._listener.serial and packet.serial != self._listener.serial:
+            return
+
+        self._listener.push(packet)
+
+
+class UDPBalancerListener(BalancerListener):
+    """Listen DEFA Balancer multicast UDP packets continuously."""
+
+    def __init__(
+        self,
+        multicast_group: str,
+        multicast_port: int,
+        serial: str | None,
+        *,
+        buffer_size: int = 25,
+    ) -> None:
+        """Initialize listener with multicast endpoint and optional serial filter."""
+        self._multicast_group = multicast_group
+        self._multicast_port = multicast_port
+        self.serial = serial
+        self._buffer: deque[BalancerPacket] = deque(maxlen=buffer_size)
+        self._transport: asyncio.DatagramTransport | None = None
+        self._packet_event: asyncio.Event = asyncio.Event()
+
+    async def start(self) -> None:
+        """Open the multicast socket and start receiving datagrams."""
+        if self._transport is not None:
+            return
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind(("", self._multicast_port))
+
+        # Use fixed-size ip_mreq layout for cross-platform compatibility.
+        mreq = struct.pack("=4s4s", socket.inet_aton(self._multicast_group), socket.inet_aton("0.0.0.0"))
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+        sock.setblocking(False)
+
+        loop = asyncio.get_running_loop()
+        transport, _ = await loop.create_datagram_endpoint(
+            lambda: _DatagramProtocol(self),
+            sock=sock,
+        )
+        self._transport = transport
+        LOGGER.debug("UDP listener started for %s:%s", self._multicast_group, self._multicast_port)
+
+    async def stop(self) -> None:
+        """Close the underlying UDP transport."""
+        if self._transport is None:
+            return
+        self._transport.close()
+        self._transport = None
+
+    def get_latest(self) -> list[BalancerPacket]:
+        """Return snapshot of most recent packets."""
+        return list(self._buffer)
+
+    async def wait_for_packet(self, timeout: float) -> bool:
+        """Wait up to *timeout* seconds for the first packet. Returns True if received."""
         try:
-            await callback()
-        except Exception:  # noqa: BLE001 - Must catch all callback errors to prevent coordinator crashes
-            LOGGER.exception("Error in callback for %s", entity_id)
+            await asyncio.wait_for(self._packet_event.wait(), timeout=timeout)
+        except TimeoutError:
+            return False
+        else:
+            return True
 
-    return wrapped_callback
+    def get_all_serials(self) -> list[str]:
+        """Return all unique serial numbers seen in the buffer (insertion order)."""
+        return list(dict.fromkeys(p.serial for p in self._buffer))
 
-
-def should_notify_entity(old_data: dict, new_data: dict, entity_key: str) -> bool:
-    """
-    Determine if an entity should be notified about a data change.
-
-    This can be used to reduce unnecessary updates when data hasn't
-    meaningfully changed for a specific entity.
-
-    Args:
-        old_data: The previous coordinator data.
-        new_data: The new coordinator data.
-        entity_key: The key in the data dict this entity cares about.
-
-    Returns:
-        True if the entity should be notified, False otherwise.
-
-    Example:
-        >>> old = {"temperature": 20.0, "humidity": 50}
-        >>> new = {"temperature": 20.1, "humidity": 50}
-        >>> should_notify_entity(old, new, "humidity")
-        False
-    """
-    # Check if the relevant data has changed
-    if entity_key not in old_data and entity_key not in new_data:
-        return False
-
-    if entity_key not in old_data:
-        return True  # New data available
-
-    if entity_key not in new_data:
-        return True  # Data removed
-
-    # Compare values (could be made more sophisticated with thresholds)
-    return old_data[entity_key] != new_data[entity_key]
+    def push(self, packet: BalancerPacket) -> None:
+        """Add a parsed packet to the ring buffer and signal waiters."""
+        self._buffer.append(packet)
+        self._packet_event.set()
 
 
-def track_update_performance(update_duration: float) -> None:
-    """
-    Track and log coordinator update performance metrics.
+class MockBalancerListener(BalancerListener):
+    """In-memory listener for tests and local development."""
 
-    Args:
-        update_duration: The time taken for the update in seconds.
+    def __init__(self, packets: Iterable[BalancerPacket] | None = None) -> None:
+        """Initialize with a predefined packet sequence."""
+        self._packets: list[BalancerPacket] = list(packets or [])
 
-    Example:
-        >>> track_update_performance(0.5)  # 500ms update
-    """
-    threshold_slow = 5.0  # seconds
-    threshold_warning = 10.0  # seconds
+    async def start(self) -> None:
+        """No-op start."""
 
-    if update_duration > threshold_warning:
-        LOGGER.warning("Coordinator update took %.2f seconds (very slow)", update_duration)
-    elif update_duration > threshold_slow:
-        LOGGER.info("Coordinator update took %.2f seconds (slow)", update_duration)
-    else:
-        LOGGER.debug("Coordinator update took %.2f seconds", update_duration)
+    async def stop(self) -> None:
+        """No-op stop."""
+
+    def get_latest(self) -> list[BalancerPacket]:
+        """Return configured packets."""
+        return list(self._packets)
+
+    def get_all_serials(self) -> list[str]:
+        """Return all unique serial numbers from configured packets."""
+        return list(dict.fromkeys(p.serial for p in self._packets))

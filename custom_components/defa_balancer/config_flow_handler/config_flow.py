@@ -1,241 +1,191 @@
-"""
-Config flow for defa_balancer.
-
-This module implements the main configuration flow including:
-- Initial user setup
-- Reconfiguration of existing entries
-- Reauthentication flow
-
-For more information:
-https://developers.home-assistant.io/docs/config_entries_config_flow_handler
-"""
+"""Config flow for DEFA Balancer."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+import asyncio
+from typing import Any
 
-from slugify import slugify
+import voluptuous as vol
 
-from custom_components.defa_balancer.config_flow_handler.schemas import (
-    get_reauth_schema,
-    get_reconfigure_schema,
-    get_user_schema,
+from custom_components.defa_balancer.const import (
+    CONF_MULTICAST_GROUP,
+    CONF_MULTICAST_PORT,
+    CONF_SERIAL,
+    CONF_UPDATE_INTERVAL,
+    DEFAULT_MULTICAST_GROUP,
+    DEFAULT_MULTICAST_PORT,
+    DEFAULT_UPDATE_INTERVAL_SECONDS,
+    DOMAIN,
+    SCAN_TIMEOUT_INITIAL,
+    SCAN_TIMEOUT_RETRY,
 )
-from custom_components.defa_balancer.config_flow_handler.validators import validate_credentials
-from custom_components.defa_balancer.const import DOMAIN, LOGGER
+from custom_components.defa_balancer.coordinator.listeners import UDPBalancerListener
 from homeassistant import config_entries
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
-
-if TYPE_CHECKING:
-    from custom_components.defa_balancer.config_flow_handler.options_flow import DEFABalancerOptionsFlow
-
-# Map exception types to error keys for user-facing messages
-ERROR_MAP = {
-    "DEFABalancerApiClientAuthenticationError": "auth",
-    "DEFABalancerApiClientCommunicationError": "connection",
-}
+from homeassistant.helpers.selector import SelectOptionDict, SelectSelector, SelectSelectorConfig
 
 
 class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    """
-    Handle a config flow for defa_balancer.
-
-    This class manages the configuration flow for the integration, including
-    initial setup, reconfiguration, and reauthentication.
-
-    Supported flows:
-    - user: Initial setup via UI
-    - reconfigure: Update existing configuration
-    - reauth: Handle expired credentials
-
-    For more details:
-    https://developers.home-assistant.io/docs/config_entries_config_flow_handler
-    """
+    """Handle DEFA Balancer config flow."""
 
     VERSION = 1
 
-    @staticmethod
-    def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ) -> DEFABalancerOptionsFlow:
-        """
-        Get the options flow for this handler.
+    def __init__(self) -> None:
+        """Initialize config flow state."""
+        self._listener: UDPBalancerListener | None = None
+        self._detected_serials: list[str] = []
+        self._scan_task: asyncio.Task[list[str]] | None = None
+        self._scan_error: str | None = None
 
-        Returns:
-            The options flow instance for modifying integration options.
-
-        """
-        from custom_components.defa_balancer.config_flow_handler.options_flow import (  # noqa: PLC0415
-            DEFABalancerOptionsFlow,
-        )
-
-        return DEFABalancerOptionsFlow()
+    def async_remove(self) -> None:
+        """Clean up background task and listener when the flow is dismissed."""
+        if self._scan_task is not None and not self._scan_task.done():
+            self._scan_task.cancel()
+            self._scan_task = None
+        if self._listener is not None:
+            self.hass.async_create_task(self._listener.stop())
+            self._listener = None
 
     async def async_step_user(
         self,
         user_input: dict[str, Any] | None = None,
     ) -> config_entries.ConfigFlowResult:
+        """Start scanning, or create entry for a pre-selected serial.
+
+        When called with a pre-selected serial (from multi-device setup),
+        skip scanning and create the entry directly.
         """
-        Handle a flow initialized by the user.
+        if self._scan_task is not None and not self._scan_task.done():
+            self._scan_task.cancel()
+        self._scan_task = None
+        await self._stop_listener()
+        return await self.async_step_scanning()
 
-        This is the entry point when a user adds the integration from the UI.
-
-        Args:
-            user_input: The user input from the config flow form, or None for initial display.
-
-        Returns:
-            The config flow result, either showing a form or creating an entry.
-
-        """
-        errors: dict[str, str] = {}
-
-        if user_input is not None:
-            try:
-                await validate_credentials(
-                    self.hass,
-                    username=user_input[CONF_USERNAME],
-                    password=user_input[CONF_PASSWORD],
-                )
-            except Exception as exception:  # noqa: BLE001
-                errors["base"] = self._map_exception_to_error(exception)
-            else:
-                # Set unique ID based on username
-                # NOTE: This is just an example - use a proper unique ID in production
-                # See: https://developers.home-assistant.io/docs/config_entries_config_flow_handler#unique-ids
-                await self.async_set_unique_id(slugify(user_input[CONF_USERNAME]))
-                self._abort_if_unique_id_configured()
-
-                return self.async_create_entry(
-                    title=user_input[CONF_USERNAME],
-                    data=user_input,
-                )
-
-        return self.async_show_form(
-            step_id="user",
-            data_schema=get_user_schema(user_input),
-            errors=errors,
-            description_placeholders={
-                "documentation_url": "https://github.com/janmilinds/ha-defa-balancer",
-            },
-        )
-
-    async def async_step_reconfigure(
+    async def async_step_scanning(
         self,
         user_input: dict[str, Any] | None = None,
     ) -> config_entries.ConfigFlowResult:
+        """Manage the background scan task.
+
+        This step ONLY returns async_show_progress or async_show_progress_done
+        to satisfy HA's progress state machine rules.
         """
-        Handle reconfiguration of the integration.
-
-        Allows users to update their credentials without removing and re-adding
-        the integration.
-
-        Args:
-            user_input: The user input from the reconfigure form, or None for initial display.
-
-        Returns:
-            The config flow result, either showing a form or updating the entry.
-
-        """
-        entry = self._get_reconfigure_entry()
-        errors: dict[str, str] = {}
-
-        if user_input is not None:
+        if self._scan_task is None:
             try:
-                await validate_credentials(
-                    self.hass,
-                    username=user_input[CONF_USERNAME],
-                    password=user_input[CONF_PASSWORD],
+                self._listener = UDPBalancerListener(
+                    DEFAULT_MULTICAST_GROUP,
+                    DEFAULT_MULTICAST_PORT,
+                    serial=None,
                 )
-            except Exception as exception:  # noqa: BLE001
-                errors["base"] = self._map_exception_to_error(exception)
-            else:
-                return self.async_update_reload_and_abort(
-                    entry,
-                    data=user_input,
-                )
+                await self._listener.start()
+            except OSError:
+                self._scan_error = "cannot_connect"
+                return self.async_show_progress_done(next_step_id="connection_error")
+            self._scan_task = self.hass.async_create_task(self._do_scan())
 
-        return self.async_show_form(
-            step_id="reconfigure",
-            data_schema=get_reconfigure_schema(entry.data.get(CONF_USERNAME, "")),
-            errors=errors,
-        )
+        if not self._scan_task.done():
+            return self.async_show_progress(
+                step_id="scanning",
+                progress_action="scanning",
+                progress_task=self._scan_task,
+            )
 
-    async def async_step_reauth(
-        self,
-        entry_data: dict[str, Any] | None = None,
-    ) -> config_entries.ConfigFlowResult:
-        """
-        Handle reauthentication when credentials are invalid.
+        try:
+            serials = self._scan_task.result()
+        except Exception:  # noqa: BLE001
+            serials = []
+        self._scan_task = None
 
-        This flow is automatically triggered when the coordinator catches
-        an authentication error (ConfigEntryAuthFailed).
+        if not serials:
+            await self._stop_listener()
+            return self.async_show_progress_done(next_step_id="retry")
 
-        Args:
-            entry_data: The existing entry data (unused, per convention).
+        await self._stop_listener()
+        self._detected_serials = serials
+        return self.async_show_progress_done(next_step_id="select")
 
-        Returns:
-            The result of the reauth_confirm step.
-
-        """
-        return await self.async_step_reauth_confirm()
-
-    async def async_step_reauth_confirm(
+    async def async_step_select(
         self,
         user_input: dict[str, Any] | None = None,
     ) -> config_entries.ConfigFlowResult:
-        """
-        Handle reauthentication confirmation.
+        """Let user choose which discovered device(s) to set up."""
+        already_configured = {entry.unique_id for entry in self.hass.config_entries.async_entries(DOMAIN)}
+        available = [s for s in self._detected_serials if s not in already_configured]
 
-        Shows the reauthentication form and processes updated credentials.
-
-        Args:
-            user_input: The user input with updated credentials, or None for initial display.
-
-        Returns:
-            The config flow result, either showing a form or updating the entry.
-
-        """
-        entry = self._get_reauth_entry()
-        errors: dict[str, str] = {}
+        if not available:
+            return self.async_abort(reason="already_configured")
 
         if user_input is not None:
-            try:
-                await validate_credentials(
-                    self.hass,
-                    username=user_input[CONF_USERNAME],
-                    password=user_input[CONF_PASSWORD],
-                )
-            except Exception as exception:  # noqa: BLE001
-                errors["base"] = self._map_exception_to_error(exception)
-            else:
-                return self.async_update_reload_and_abort(
-                    entry,
-                    data={**entry.data, **user_input},
-                )
+            serial: str = user_input[CONF_SERIAL]
+            await self.async_set_unique_id(serial)
+            self._abort_if_unique_id_configured()
+            return self.async_create_entry(
+                title=f"DEFA Balancer {serial}",
+                data={
+                    CONF_MULTICAST_GROUP: DEFAULT_MULTICAST_GROUP,
+                    CONF_MULTICAST_PORT: DEFAULT_MULTICAST_PORT,
+                    CONF_SERIAL: serial,
+                    CONF_UPDATE_INTERVAL: DEFAULT_UPDATE_INTERVAL_SECONDS,
+                },
+            )
 
+        options = [SelectOptionDict(value=s, label=f"DEFA Balancer \u2013 {s}") for s in available]
         return self.async_show_form(
-            step_id="reauth_confirm",
-            data_schema=get_reauth_schema(entry.data.get(CONF_USERNAME, "")),
-            errors=errors,
-            description_placeholders={
-                "username": entry.data.get(CONF_USERNAME, ""),
-            },
+            step_id="select",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_SERIAL): SelectSelector(SelectSelectorConfig(options=options, multiple=False)),
+                }
+            ),
+            description_placeholders={"count": str(len(available))},
         )
 
-    def _map_exception_to_error(self, exception: Exception) -> str:
+    async def async_step_retry(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> config_entries.ConfigFlowResult:
+        """Show retry screen with a custom scan-again button."""
+        return self.async_show_menu(
+            step_id="retry",
+            menu_options=["user"],
+        )
+
+    async def async_step_connection_error(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> config_entries.ConfigFlowResult:
+        """Show a recoverable error when multicast listener startup fails."""
+        if user_input is not None:
+            self._scan_error = None
+            return await self.async_step_user()
+
+        return self.async_show_form(
+            step_id="connection_error",
+            data_schema=vol.Schema({}),
+            errors={"base": self._scan_error or "cannot_connect"},
+        )
+
+    async def _do_scan(self) -> list[str]:
+        """Run the full two-phase scan: 5 s initial, then auto-extend 10 s.
+
+        Always waits the full window so multiple devices can be discovered.
+        Returns list of unique serial numbers found, empty if none.
         """
-        Map API exceptions to user-facing error keys.
+        if self._listener is None:
+            return []
 
-        Args:
-            exception: The exception that was raised.
+        await asyncio.sleep(SCAN_TIMEOUT_INITIAL)
+        serials = self._listener.get_all_serials()
+        if serials:
+            return serials
 
-        Returns:
-            The error key for display in the config flow form.
+        await asyncio.sleep(SCAN_TIMEOUT_RETRY)
+        return self._listener.get_all_serials()
 
-        """
-        LOGGER.warning("Error in config flow: %s", exception)
-        exception_name = type(exception).__name__
-        return ERROR_MAP.get(exception_name, "unknown")
+    async def _stop_listener(self) -> None:
+        """Stop and discard the active listener."""
+        if self._listener is not None:
+            await self._listener.stop()
+            self._listener = None
 
 
 __all__ = ["DEFABalancerConfigFlowHandler"]
