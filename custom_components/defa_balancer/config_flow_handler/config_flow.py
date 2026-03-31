@@ -79,7 +79,7 @@ class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 await self._listener.start()
             except OSError:
                 self._scan_error = "cannot_connect"
-                return self.async_show_progress_done(next_step_id="user")
+                return self.async_show_progress_done(next_step_id="connection_error")
             self._scan_task = self.hass.async_create_task(self._do_scan())
 
         if not self._scan_task.done():
@@ -147,6 +147,21 @@ class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_menu(
             step_id="retry",
             menu_options=["user"],
+        )
+
+    async def async_step_connection_error(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> config_entries.ConfigFlowResult:
+        """Show a recoverable error when multicast listener startup fails."""
+        if user_input is not None:
+            self._scan_error = None
+            return await self.async_step_user()
+
+        return self.async_show_form(
+            step_id="connection_error",
+            data_schema=vol.Schema({}),
+            errors={"base": self._scan_error or "cannot_connect"},
         )
 
     async def _do_scan(self) -> list[str]:

@@ -7,10 +7,13 @@ integration multicast endpoint (default: 234.222.250.1:57082).
 Usage
 -----
 Basic (single device, 2 packets/s):
+    python3 script/mock_balancer.py
+
+Basic with explicit serial:
     python3 script/mock_balancer.py --serial AB12CD34
 
 Custom phase currents and jitter:
-    python3 script/mock_balancer.py --serial AB12CD34 --l1 8500 --l2 7200 --l3 9100 --jitter 0.05
+    python3 script/mock_balancer.py --serial AB12CD34 --l1 8.5 --l2 7.2 --l3 9.1 --jitter 0.05
 
 Run two devices simultaneously (open two terminals):
     python3 script/mock_balancer.py --serial AB12CD34 --rate 2 --jitter 0.05
@@ -21,16 +24,16 @@ Time-limited run (stop after 30 s):
 
 Arguments:
 ---------
---serial     Device serial number, e.g. AB12CD34 (required)
+--serial     Device serial number, e.g. AB12CD34 (default: AB12CD34)
 --group      Multicast group IP  (default: 234.222.250.1)
 --port       Multicast port      (default: 57082)
 --rate       Packets per second  (default: 2.0)
---l1         L1 phase current in mA (default: 8000)
---l2         L2 phase current in mA (default: 7500)
---l3         L3 phase current in mA (default: 8200)
---jitter     Random current jitter fraction 0–1 (default: 0.0)
+--l1         L1 phase current in amps (default: 8.5)
+--l2         L2 phase current in amps (default: 7.2)
+--l3         L3 phase current in amps (default: 6.9)
+--jitter     Random amp jitter (+/-) applied per phase (default: 0.15)
 --firmware   Firmware version string (default: 4.0.0)
---source-port UDP source port; 0 lets the OS pick a free port (default: 0)
+--source-port UDP source port; on bind conflict, falls back to OS-selected free port (default: 4568)
 
 Notes:
 -----
