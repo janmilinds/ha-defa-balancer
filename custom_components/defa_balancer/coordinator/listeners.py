@@ -64,6 +64,7 @@ class UDPBalancerListener(BalancerListener):
         self.serial = serial
         self._buffer: deque[BalancerPacket] = deque(maxlen=buffer_size)
         self._transport: asyncio.DatagramTransport | None = None
+        self._packet_event: asyncio.Event = asyncio.Event()
 
     async def start(self) -> None:
         """Open the multicast socket and start receiving datagrams."""
@@ -97,9 +98,23 @@ class UDPBalancerListener(BalancerListener):
         """Return snapshot of most recent packets."""
         return list(self._buffer)
 
+    async def wait_for_packet(self, timeout: float) -> bool:
+        """Wait up to *timeout* seconds for the first packet. Returns True if received."""
+        try:
+            await asyncio.wait_for(self._packet_event.wait(), timeout=timeout)
+        except TimeoutError:
+            return False
+        else:
+            return True
+
+    def get_all_serials(self) -> list[str]:
+        """Return all unique serial numbers seen in the buffer (insertion order)."""
+        return list(dict.fromkeys(p.serial for p in self._buffer))
+
     def push(self, packet: BalancerPacket) -> None:
-        """Add a parsed packet to the ring buffer."""
+        """Add a parsed packet to the ring buffer and signal waiters."""
         self._buffer.append(packet)
+        self._packet_event.set()
 
 
 class MockBalancerListener(BalancerListener):
@@ -118,3 +133,7 @@ class MockBalancerListener(BalancerListener):
     def get_latest(self) -> list[BalancerPacket]:
         """Return configured packets."""
         return list(self._packets)
+
+    def get_all_serials(self) -> list[str]:
+        """Return all unique serial numbers from configured packets."""
+        return list(dict.fromkeys(p.serial for p in self._packets))

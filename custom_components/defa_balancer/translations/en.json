@@ -1,18 +1,36 @@
 {
   "config": {
+    "progress": {
+      "scanning": "Scanning devices from network, this may take 5 to 15 seconds"
+    },
     "step": {
       "user": {
-        "title": "DEFA Balancer",
-        "description": "Configure multicast settings for DEFA Balancer packet listening.",
+        "title": "Find DEFA Balancer"
+      },
+      "scanning": {
+        "title": "DEFA Balancer"
+      },
+      "retry": {
+        "title": "No DEFA Balancer found",
+        "description": "No DEFA Balancer found on the network.\n\nVerify:\n- Device is powered on\n- Device is connected to the network\n- Device is on the same subnet/VLAN as Home Assistant\n- Multicast UDP traffic is not blocked (check your router configuration)",
+        "menu_options": {
+          "user": "Search devices again"
+        }
+      },
+      "select": {
+        "title": "DEFA Balancer found",
+        "description": "Found {count} DEFA Balancer(s) on the network. Select the device to set up.",
         "data": {
-          "multicast_group": "Multicast group",
-          "multicast_port": "Multicast port",
-          "update_interval": "Update interval (seconds)"
+          "serial": "Device"
         }
       }
     },
+    "error": {
+      "cannot_connect": "Unable to open the multicast socket. Check that multicast UDP traffic is allowed on the network.",
+      "no_device_found": "No DEFA Balancer found."
+    },
     "abort": {
-      "already_configured": "This multicast endpoint is already configured."
+      "already_configured": "This DEFA Balancer is already configured."
     }
   },
   "entity": {

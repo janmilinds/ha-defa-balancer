@@ -6,6 +6,7 @@ from datetime import timedelta
 from typing import TYPE_CHECKING
 
 from homeassistant.const import Platform
+from homeassistant.exceptions import ConfigEntryNotReady
 import homeassistant.helpers.config_validation as cv
 
 from .const import (
@@ -52,6 +53,12 @@ async def async_setup_entry(
         serial=entry.data.get(CONF_SERIAL),
     )
     await listener.start()
+
+    if not await listener.wait_for_packet(timeout=5.0):
+        await listener.stop()
+        raise ConfigEntryNotReady(
+            "No UDP packets received from DEFA Balancer – check device is powered on and reachable"
+        )
 
     coordinator = DEFABalancerDataUpdateCoordinator(
         hass=hass,

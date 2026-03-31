@@ -33,6 +33,7 @@ class DEFABalancerEntity(CoordinatorEntity[DEFABalancerDataUpdateCoordinator]):
             identifiers={(DOMAIN, serial)},
             name=f"DEFA Balancer {serial}",
             manufacturer="DEFA",
-            model="Balancer",
+            model="DEFA Balancer",
+            serial_number=serial,
             sw_version=str(coordinator.data.get("firmware", "unknown")) if coordinator.data else None,
         )
