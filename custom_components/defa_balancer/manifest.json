@@ -1,0 +1,13 @@
+{
+  "domain": "defa_balancer",
+  "name": "DEFA Balancer",
+  "codeowners": [
+    "@janmilinds"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/janmilinds/ha-defa-balancer",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/janmilinds/ha-defa-balancer/issues",
+  "version": "0.1.0"
+}
