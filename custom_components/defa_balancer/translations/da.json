@@ -1,0 +1,65 @@
+{
+  "config": {
+    "progress": {
+      "scanning": "Søger efter enheder på netværket, dette kan tage 5 til 15 sekunder"
+    },
+    "step": {
+      "user": {
+        "title": "Find DEFA Balancer"
+      },
+      "scanning": {
+        "title": "DEFA Balancer"
+      },
+      "retry": {
+        "title": "Ingen DEFA Balancer fundet",
+        "description": "Ingen DEFA Balancer blev fundet på netværket.\n\nKontrollér:\n- At enheden er tændt\n- At enheden er tilsluttet netværket\n- At enheden er på samme subnet/VLAN som Home Assistant\n- At multicast UDP-trafik ikke er blokeret (tjek routerens konfiguration)",
+        "menu_options": {
+          "user": "Søg efter enheder igen"
+        }
+      },
+      "select": {
+        "title": "DEFA Balancer fundet",
+        "description": "Fandt {count} DEFA Balancer-enhed(er) på netværket. Vælg den enhed, der skal sættes op.",
+        "data": {
+          "serial": "Enhed"
+        }
+      },
+      "connection_error": {
+        "title": "Forbindelsesfejl",
+        "description": "Home Assistant kunne ikke starte multicast-lytning.\n\nKontrollér netværks- og værtsindstillingerne, og prøv igen."
+      }
+    },
+    "error": {
+      "cannot_connect": "Kunne ikke åbne multicast-socketen. Kontrollér, at multicast UDP-trafik er tilladt på netværket.",
+      "no_device_found": "Ingen DEFA Balancer fundet."
+    },
+    "abort": {
+      "already_configured": "Denne DEFA Balancer er allerede konfigureret."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "l1_current": {
+        "name": "L1-strøm"
+      },
+      "l2_current": {
+        "name": "L2-strøm"
+      },
+      "l3_current": {
+        "name": "L3-strøm"
+      },
+      "l1_power": {
+        "name": "L1-effekt"
+      },
+      "l2_power": {
+        "name": "L2-effekt"
+      },
+      "l3_power": {
+        "name": "L3-effekt"
+      },
+      "total_power": {
+        "name": "Samlet effekt"
+      }
+    }
+  }
+}

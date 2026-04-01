@@ -1,0 +1,65 @@
+{
+  "config": {
+    "progress": {
+      "scanning": "Suche Geräte im Netzwerk, das kann 5 bis 15 Sekunden dauern"
+    },
+    "step": {
+      "user": {
+        "title": "DEFA Balancer finden"
+      },
+      "scanning": {
+        "title": "DEFA Balancer"
+      },
+      "retry": {
+        "title": "Kein DEFA Balancer gefunden",
+        "description": "Im Netzwerk wurde kein DEFA Balancer gefunden.\n\nPrüfe:\n- Das Gerät ist eingeschaltet\n- Das Gerät ist mit dem Netzwerk verbunden\n- Das Gerät ist im selben Subnetz/VLAN wie Home Assistant\n- Multicast-UDP-Datenverkehr wird nicht blockiert (prüfe die Router-Konfiguration)",
+        "menu_options": {
+          "user": "Erneut nach Geräten suchen"
+        }
+      },
+      "select": {
+        "title": "DEFA Balancer gefunden",
+        "description": "Im Netzwerk wurden {count} DEFA-Balancer-Gerät(e) gefunden. Wähle das Gerät aus, das du einrichten möchtest.",
+        "data": {
+          "serial": "Gerät"
+        }
+      },
+      "connection_error": {
+        "title": "Verbindungsfehler",
+        "description": "Home Assistant konnte das Multicast-Listening nicht starten.\n\nPrüfe die Netzwerk- und Host-Einstellungen und versuche es erneut."
+      }
+    },
+    "error": {
+      "cannot_connect": "Der Multicast-Socket konnte nicht geöffnet werden. Prüfe, dass Multicast-UDP-Datenverkehr im Netzwerk erlaubt ist.",
+      "no_device_found": "Kein DEFA Balancer gefunden."
+    },
+    "abort": {
+      "already_configured": "Dieser DEFA Balancer ist bereits eingerichtet."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "l1_current": {
+        "name": "L1-Strom"
+      },
+      "l2_current": {
+        "name": "L2-Strom"
+      },
+      "l3_current": {
+        "name": "L3-Strom"
+      },
+      "l1_power": {
+        "name": "L1-Leistung"
+      },
+      "l2_power": {
+        "name": "L2-Leistung"
+      },
+      "l3_power": {
+        "name": "L3-Leistung"
+      },
+      "total_power": {
+        "name": "Gesamtleistung"
+      }
+    }
+  }
+}

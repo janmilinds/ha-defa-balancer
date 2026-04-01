@@ -1,0 +1,65 @@
+{
+  "config": {
+    "progress": {
+      "scanning": "Etsitään laitteita verkosta, tämä voi kestää 5–15 sekuntia"
+    },
+    "step": {
+      "user": {
+        "title": "Etsi DEFA Balancer"
+      },
+      "scanning": {
+        "title": "DEFA Balancer"
+      },
+      "retry": {
+        "title": "DEFA Balanceria ei löytynyt",
+        "description": "DEFA Balanceria ei löytynyt verkosta.\n\nTarkista:\n- Laitteessa on virta päällä\n- Laite on kytketty verkkoon\n- Laite on samassa aliverkossa/VLANissa kuin Home Assistant\n- Multicast UDP -liikennettä ei estetä (tarkista reitittimen asetukset)",
+        "menu_options": {
+          "user": "Etsi laitteita uudelleen"
+        }
+      },
+      "select": {
+        "title": "DEFA Balancer löytyi",
+        "description": "Verkosta löytyi {count} DEFA Balancer -laitetta. Valitse määritettävä laite.",
+        "data": {
+          "serial": "Laite"
+        }
+      },
+      "connection_error": {
+        "title": "Yhteysvirhe",
+        "description": "Home Assistant ei voinut käynnistää multicast-kuuntelua.\n\nTarkista verkko- ja järjestelmäasetukset ja yritä uudelleen."
+      }
+    },
+    "error": {
+      "cannot_connect": "Multicast-socketia ei voitu avata. Tarkista, että multicast UDP -liikenne on sallittu verkossa.",
+      "no_device_found": "DEFA Balanceria ei löytynyt."
+    },
+    "abort": {
+      "already_configured": "Tämä DEFA Balancer on jo määritetty."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "l1_current": {
+        "name": "L1-virta"
+      },
+      "l2_current": {
+        "name": "L2-virta"
+      },
+      "l3_current": {
+        "name": "L3-virta"
+      },
+      "l1_power": {
+        "name": "L1-teho"
+      },
+      "l2_power": {
+        "name": "L2-teho"
+      },
+      "l3_power": {
+        "name": "L3-teho"
+      },
+      "total_power": {
+        "name": "Kokonaisteho"
+      }
+    }
+  }
+}
