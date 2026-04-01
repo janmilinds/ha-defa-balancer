@@ -17,6 +17,7 @@ from custom_components.defa_balancer.const import (
     DATA_PACKET_COUNT,
     DATA_TOTAL_POWER,
     DEFAULT_PHASE_VOLTAGE,
+    DEFAULT_UNAVAILABLE_TIMEOUT_SECONDS,
 )
 from custom_components.defa_balancer.coordinator.listeners import BalancerListener
 from homeassistant.core import HomeAssistant
@@ -55,6 +56,10 @@ class DEFABalancerDataUpdateCoordinator(DataUpdateCoordinator[dict[str, float | 
         packets = self._listener.get_latest()
         if not packets:
             raise UpdateFailed("No packets received")
+
+        last_packet_age = self._listener.get_last_packet_age()
+        if last_packet_age is None or last_packet_age > DEFAULT_UNAVAILABLE_TIMEOUT_SECONDS:
+            raise UpdateFailed(f"No packets received for {DEFAULT_UNAVAILABLE_TIMEOUT_SECONDS} seconds")
 
         packet_count = len(packets)
         l1 = sum(packet.l1 for packet in packets) / packet_count

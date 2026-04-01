@@ -28,6 +28,10 @@ class BalancerListener(ABC):
     def get_latest(self) -> list[BalancerPacket]:
         """Return latest packet snapshot from internal buffer."""
 
+    @abstractmethod
+    def get_last_packet_age(self) -> float | None:
+        """Return age of the latest packet in seconds, or None if no packet exists."""
+
 
 class _DatagramProtocol(asyncio.DatagramProtocol):
     """UDP protocol that parses incoming packets into a shared queue."""
@@ -65,6 +69,7 @@ class UDPBalancerListener(BalancerListener):
         self._buffer: deque[BalancerPacket] = deque(maxlen=buffer_size)
         self._transport: asyncio.DatagramTransport | None = None
         self._packet_event: asyncio.Event = asyncio.Event()
+        self._last_packet_timestamp: float | None = None
 
     async def start(self) -> None:
         """Open the multicast socket and start receiving datagrams."""
@@ -99,6 +104,12 @@ class UDPBalancerListener(BalancerListener):
         """Return snapshot of most recent packets."""
         return list(self._buffer)
 
+    def get_last_packet_age(self) -> float | None:
+        """Return age of the latest packet in seconds."""
+        if self._last_packet_timestamp is None:
+            return None
+        return asyncio.get_running_loop().time() - self._last_packet_timestamp
+
     async def wait_for_packet(self, timeout: float) -> bool:
         """Wait up to *timeout* seconds for the first packet. Returns True if received."""
         try:
@@ -115,6 +126,7 @@ class UDPBalancerListener(BalancerListener):
     def push(self, packet: BalancerPacket) -> None:
         """Add a parsed packet to the ring buffer and signal waiters."""
         self._buffer.append(packet)
+        self._last_packet_timestamp = asyncio.get_running_loop().time()
         self._packet_event.set()
 
 
@@ -134,6 +146,12 @@ class MockBalancerListener(BalancerListener):
     def get_latest(self) -> list[BalancerPacket]:
         """Return configured packets."""
         return list(self._packets)
+
+    def get_last_packet_age(self) -> float | None:
+        """Return packet age for tests; static fixtures are considered always fresh."""
+        if not self._packets:
+            return None
+        return 0.0
 
     def get_all_serials(self) -> list[str]:
         """Return all unique serial numbers from configured packets."""
