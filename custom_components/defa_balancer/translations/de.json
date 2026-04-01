@@ -1,7 +1,7 @@
 {
   "config": {
     "progress": {
-      "scanning": "Suche Geräte im Netzwerk, das kann 5 bis 15 Sekunden dauern"
+      "scanning": "Suche nach Geräten im Netzwerk. Das kann 5–15 Sekunden dauern."
     },
     "step": {
       "user": {
