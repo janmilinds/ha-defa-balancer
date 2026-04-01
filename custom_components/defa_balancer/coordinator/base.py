@@ -55,11 +55,17 @@ class DEFABalancerDataUpdateCoordinator(DataUpdateCoordinator[dict[str, float | 
         """Aggregate latest packet values for sensors."""
         packets = self._listener.get_latest()
         if not packets:
-            raise UpdateFailed("No packets received")
+            raise UpdateFailed("No data received")
 
         last_packet_age = self._listener.get_last_packet_age()
         if last_packet_age is None or last_packet_age > DEFAULT_UNAVAILABLE_TIMEOUT_SECONDS:
-            raise UpdateFailed(f"No packets received for {DEFAULT_UNAVAILABLE_TIMEOUT_SECONDS} seconds")
+            if last_packet_age is None:
+                raise UpdateFailed(f"No data received in the last {DEFAULT_UNAVAILABLE_TIMEOUT_SECONDS} seconds")
+
+            raise UpdateFailed(
+                f"No data received in the last {DEFAULT_UNAVAILABLE_TIMEOUT_SECONDS} "
+                f"seconds (latest data {last_packet_age:.1f}s ago)"
+            )
 
         packet_count = len(packets)
         l1 = sum(packet.l1 for packet in packets) / packet_count
