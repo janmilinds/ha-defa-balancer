@@ -29,7 +29,8 @@ def parse_packet(data: bytes) -> BalancerPacket | None:
     else:
         serial = serial_raw
 
-    l1_ma = int.from_bytes(data[19:21], "little")
+    # Byte 19 is a status marker in observed packets; L1 is at 20-21.
+    l1_ma = int.from_bytes(data[20:22], "little")
     l2_ma = int.from_bytes(data[23:26], "little")
     l3_ma = int.from_bytes(data[26:29], "little")
     firmware = data[33:38].decode("ascii", errors="ignore").rstrip("\x00")

@@ -57,7 +57,7 @@ DEFAULT_RATE = 2.0
 DEFAULT_FIRMWARE = "4.0.0"
 
 FIXED_14_18 = bytes.fromhex("43 9d 01 00 00")
-FIXED_21_22 = bytes.fromhex("05 00")
+FIXED_19 = 0x41
 FIXED_29 = bytes([0x02])
 FIXED_30_32 = b"D01"
 
@@ -92,8 +92,9 @@ def build_packet(
     l2_ma = max(0, min(int(l2_amp * 1000), 0xFFFFFF))
     l3_ma = max(0, min(int(l3_amp * 1000), 0xFFFFFF))
 
-    packet[19:21] = struct.pack("<H", l1_ma)
-    packet[21:23] = FIXED_21_22
+    packet[19] = FIXED_19
+    packet[20:22] = struct.pack("<H", l1_ma)
+    packet[22] = 0x00
     packet[23:26] = _encode_u24_le(l2_ma)
     packet[26:29] = _encode_u24_le(l3_ma)
     packet[29:30] = FIXED_29
