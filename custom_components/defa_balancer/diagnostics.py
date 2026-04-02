@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from custom_components.defa_balancer.const import DOMAIN, ISSUE_ID_DEVICE_UNREACHABLE_PREFIX
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.redact import async_redact_data
 
 if TYPE_CHECKING:
@@ -11,7 +13,7 @@ if TYPE_CHECKING:
 
     from .data import DEFABalancerConfigEntry
 
-TO_REDACT = {"serial"}
+TO_REDACT = {"entry_id", "serial"}
 
 
 async def async_get_config_entry_diagnostics(
@@ -20,6 +22,12 @@ async def async_get_config_entry_diagnostics(
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
     coordinator = entry.runtime_data.coordinator
+    issue_registry = ir.async_get(hass)
+    issues = [
+        issue
+        for (domain, issue_id), issue in issue_registry.issues.items()
+        if domain == DOMAIN and issue_id.startswith(ISSUE_ID_DEVICE_UNREACHABLE_PREFIX)
+    ]
 
     return {
         "entry": {
@@ -31,7 +39,19 @@ async def async_get_config_entry_diagnostics(
         },
         "coordinator": {
             "last_update_success": coordinator.last_update_success,
+            "last_exception": str(coordinator.last_exception) if coordinator.last_exception else None,
+            "packet_age_seconds": entry.runtime_data.listener.get_last_packet_age(),
             "update_interval": str(coordinator.update_interval),
             "data": coordinator.data,
         },
+        "issues": [
+            {
+                "issue_id": issue.issue_id,
+                "severity": issue.severity,
+                "translation_key": issue.translation_key,
+                "is_fixable": issue.is_fixable,
+                "data": async_redact_data(issue.data or {}, TO_REDACT),
+            }
+            for issue in issues
+        ],
     }
