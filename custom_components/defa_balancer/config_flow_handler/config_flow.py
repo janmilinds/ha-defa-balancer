@@ -112,7 +112,7 @@ class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         available = [s for s in self._detected_serials if s not in already_configured]
 
         if not available:
-            return self.async_abort(reason="already_configured")
+            return await self.async_step_retry()
 
         if user_input is not None:
             serial: str = user_input[CONF_SERIAL]

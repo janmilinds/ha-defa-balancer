@@ -8,7 +8,7 @@
         "title": "Etsi DEFA Balancer"
       },
       "scanning": {
-        "title": "DEFA Balancer"
+        "title": "Määritä DEFA Balancer"
       },
       "retry": {
         "title": "DEFA Balanceria ei löytynyt",
@@ -32,9 +32,6 @@
     "error": {
       "cannot_connect": "Multicast-socketia ei voitu avata. Tarkista, että multicast UDP -liikenne on sallittu verkossa.",
       "no_device_found": "DEFA Balanceria ei löytynyt."
-    },
-    "abort": {
-      "already_configured": "Tämä DEFA Balancer on jo määritetty."
     }
   },
   "entity": {

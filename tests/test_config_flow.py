@@ -168,7 +168,7 @@ async def test_config_flow_select_creates_entry_with_serial(
 
 @pytest.mark.unit
 async def test_config_flow_duplicate_serial_aborts(hass: HomeAssistant, enable_custom_integrations: None) -> None:
-    """Test that all found serials already configured causes abort."""
+    """Test that all found serials already configured shows retry menu."""
     mock_serial = FAKE_DUPLICATE_SERIAL
     existing_entry = MockConfigEntry(
         domain=DOMAIN,
@@ -192,8 +192,8 @@ async def test_config_flow_duplicate_serial_aborts(hass: HomeAssistant, enable_c
             result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
             result = await _poll_until_done(hass, result)
 
-            assert result["type"] == FlowResultType.ABORT
-            assert result["reason"] == "already_configured"
+            assert result["type"] == FlowResultType.MENU
+            assert result["step_id"] == "retry"
 
 
 @pytest.mark.unit

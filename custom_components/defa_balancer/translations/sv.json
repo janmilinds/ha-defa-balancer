@@ -8,7 +8,7 @@
         "title": "Hitta DEFA Balancer"
       },
       "scanning": {
-        "title": "DEFA Balancer"
+        "title": "Konfigurera DEFA Balancer"
       },
       "retry": {
         "title": "Ingen DEFA Balancer hittades",
@@ -32,9 +32,6 @@
     "error": {
       "cannot_connect": "Det gick inte att öppna multicast-socketen. Kontrollera att multicast UDP-trafik är tillåten i nätverket.",
       "no_device_found": "Ingen DEFA Balancer hittades."
-    },
-    "abort": {
-      "already_configured": "Den här DEFA Balancer är redan konfigurerad."
     }
   },
   "entity": {
