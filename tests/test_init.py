@@ -411,7 +411,7 @@ async def test_e2e_setup_retry_recovery(
         # First attempt fails: entry enters SETUP_RETRY
         assert not await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
-        assert entry.state.name == "SETUP_RETRY"
+        assert entry.state is ConfigEntryState.SETUP_RETRY
 
         failing_listener.stop.assert_awaited_once()
 
