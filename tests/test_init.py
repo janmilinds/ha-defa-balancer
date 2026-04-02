@@ -293,6 +293,58 @@ async def test_e2e_stale_data_marks_entities_unavailable(
 
 
 @pytest.mark.integration
+async def test_e2e_fresh_data_restores_entities_from_unavailable(
+    hass: HomeAssistant,
+    enable_custom_integrations: None,
+) -> None:
+    """E2E: fresh coordinator data restores entities after a stale-data failure."""
+    entry = _mock_entry()
+    entry.add_to_hass(hass)
+
+    listener = _FakeUDPListener(
+        packets=[
+            BalancerPacket(serial=FAKE_SERIAL, l1=8.5, l2=7.2, l3=6.9, firmware="4.0.0"),
+        ]
+    )
+
+    with patch("custom_components.defa_balancer.UDPBalancerListener", return_value=listener):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+        registry = er.async_get(hass)
+        entities = er.async_entries_for_config_entry(registry, entry.entry_id)
+        l1_entity = next(item for item in entities if item.unique_id.endswith("_l1"))
+
+        listener.packet_age = 20.0
+        await entry.runtime_data.coordinator.async_request_refresh()
+        await hass.async_block_till_done()
+
+        unavailable_state = hass.states.get(l1_entity.entity_id)
+        assert unavailable_state is not None
+        assert unavailable_state.state == "unavailable"
+
+        # DataUpdateCoordinator debounces manual refresh requests for 10 seconds.
+        # Cancel the cooldown timer so the second request exercises recovery immediately.
+        entry.runtime_data.coordinator._debounced_refresh.async_cancel()
+
+        listener.packet_age = 0.0
+        listener._packets = [
+            BalancerPacket(serial=FAKE_SERIAL, l1=9.3, l2=7.4, l3=7.0, firmware="4.0.0"),
+        ]
+        await entry.runtime_data.coordinator.async_request_refresh()
+        await hass.async_block_till_done()
+
+        assert entry.runtime_data.coordinator.last_update_success is True
+        assert entry.runtime_data.coordinator.data is not None
+        assert entry.runtime_data.coordinator.data["l1"] == pytest.approx(9.3, abs=0.001)
+
+        recovered_state = hass.states.get(l1_entity.entity_id)
+        assert recovered_state is not None
+        assert recovered_state.state != "unavailable"
+        assert float(recovered_state.state) == pytest.approx(9.3, abs=0.001)
+
+
+@pytest.mark.integration
 async def test_e2e_reload_entry_recreates_runtime_objects(
     hass: HomeAssistant,
     enable_custom_integrations: None,

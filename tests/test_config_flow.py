@@ -251,3 +251,57 @@ async def test_e2e_config_flow_create_entry_and_setup(
         await hass.async_block_till_done()
 
         assert entry.state.name == "LOADED"
+
+
+@pytest.mark.integration
+async def test_e2e_config_flow_connection_error_then_retry_success(
+    hass: HomeAssistant,
+    enable_custom_integrations: None,
+) -> None:
+    """E2E: a failed flow does not block a subsequent successful setup attempt."""
+    failing_scan_listener = _FakeScanListener()
+    failing_scan_listener.start = AsyncMock(side_effect=OSError)
+    successful_scan_listener = _FakeScanListener()
+    setup_listener = _FakeUDPListener(
+        packets=[
+            BalancerPacket(serial=FAKE_SERIAL, l1=8.5, l2=7.2, l3=6.9, firmware="4.0.0"),
+        ]
+    )
+
+    async def one_device_scan(self) -> list[str]:
+        return [FAKE_SERIAL]
+
+    with (
+        patch(
+            "custom_components.defa_balancer.config_flow_handler.config_flow.UDPBalancerListener",
+            side_effect=[failing_scan_listener, successful_scan_listener],
+        ),
+        patch(
+            "custom_components.defa_balancer.config_flow_handler.config_flow.DEFABalancerConfigFlowHandler._do_scan",
+            one_device_scan,
+        ),
+        patch("custom_components.defa_balancer.UDPBalancerListener", return_value=setup_listener),
+    ):
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        while result["type"] in ("progress", "progress_done"):
+            result = await hass.config_entries.flow.async_configure(result["flow_id"])
+
+        assert result["type"] == "form"
+        assert result["step_id"] == "connection_error"
+
+        # Start a fresh user flow after the failed attempt.
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        while result["type"] in ("progress", "progress_done"):
+            result = await hass.config_entries.flow.async_configure(result["flow_id"])
+
+        assert result["type"] == "form"
+        assert result["step_id"] == "select"
+
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_SERIAL: FAKE_SERIAL})
+        assert result["type"] == "create_entry"
+
+        entry = hass.config_entries.async_entries(DOMAIN)[0]
+        await hass.async_block_till_done()
+
+        assert entry.state.name == "LOADED"
+        successful_scan_listener.stop.assert_awaited_once()
