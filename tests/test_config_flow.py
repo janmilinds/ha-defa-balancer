@@ -156,3 +156,23 @@ async def test_config_flow_duplicate_serial_aborts(hass: HomeAssistant, enable_c
 
             assert result["type"] == FlowResultType.ABORT
             assert result["reason"] == "already_configured"
+
+
+@pytest.mark.unit
+async def test_config_flow_listener_start_failure_shows_connection_error(
+    hass: HomeAssistant, enable_custom_integrations: None
+) -> None:
+    """Test listener startup OSError routes flow to connection_error step."""
+    listener = _mock_listener()
+    listener.start = AsyncMock(side_effect=OSError)
+
+    with patch(
+        "custom_components.defa_balancer.config_flow_handler.config_flow.UDPBalancerListener",
+        return_value=listener,
+    ):
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        assert result["type"] == FlowResultType.SHOW_PROGRESS_DONE
+
+        result = await hass.config_entries.flow.async_configure(result["flow_id"])
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "connection_error"

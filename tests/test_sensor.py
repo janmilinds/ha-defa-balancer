@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import sys
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -23,6 +24,16 @@ from custom_components.defa_balancer.const import (
 )
 from custom_components.defa_balancer.entity.base import DEFABalancerEntity
 from custom_components.defa_balancer.sensor.measurement import ENTITY_DESCRIPTIONS, DEFABalancerMeasurementSensor
+from test_constants import FAKE_FIRMWARE, FAKE_SERIAL
+
+
+def _mock_coordinator(data: dict[str, object] | None = None) -> MagicMock:
+    """Create a minimal coordinator mock for entity tests."""
+    coordinator = MagicMock()
+    coordinator.config_entry.entry_id = "entry_1"
+    coordinator.config_entry.data = {"serial": FAKE_SERIAL}
+    coordinator.data = data
+    return coordinator
 
 
 @pytest.mark.unit
@@ -94,3 +105,54 @@ def test_sensor_translation_keys() -> None:
 def test_sensor_is_subclass_of_base_entity() -> None:
     """Test DEFABalancerMeasurementSensor inherits from DEFABalancerEntity."""
     assert issubclass(DEFABalancerMeasurementSensor, DEFABalancerEntity)
+
+
+@pytest.mark.unit
+def test_sensor_native_value_returns_number_from_coordinator_data() -> None:
+    """Test native_value returns numeric values from coordinator data."""
+    coordinator = _mock_coordinator(data={DATA_L1: 8.5})
+    entity = DEFABalancerMeasurementSensor(coordinator, ENTITY_DESCRIPTIONS[0])
+
+    assert entity.native_value == 8.5
+
+
+@pytest.mark.unit
+def test_sensor_native_value_returns_none_when_data_missing() -> None:
+    """Test native_value returns None when coordinator has no data."""
+    coordinator = _mock_coordinator(data=None)
+    entity = DEFABalancerMeasurementSensor(coordinator, ENTITY_DESCRIPTIONS[0])
+
+    assert entity.native_value is None
+
+
+@pytest.mark.unit
+def test_sensor_native_value_returns_none_for_non_numeric() -> None:
+    """Test native_value returns None for non-numeric coordinator values."""
+    coordinator = _mock_coordinator(data={DATA_L1: "not-a-number"})
+    entity = DEFABalancerMeasurementSensor(coordinator, ENTITY_DESCRIPTIONS[0])
+
+    assert entity.native_value is None
+
+
+@pytest.mark.unit
+def test_entity_device_info_contains_serial_and_firmware() -> None:
+    """Test base entity device_info includes expected metadata."""
+    coordinator = _mock_coordinator(data={"firmware": FAKE_FIRMWARE})
+    entity = DEFABalancerMeasurementSensor(coordinator, ENTITY_DESCRIPTIONS[0])
+
+    assert entity.unique_id == "entry_1_l1"
+    assert entity.device_info is not None
+    assert entity.device_info["serial_number"] == FAKE_SERIAL
+    assert entity.device_info["manufacturer"] == "DEFA"
+    assert entity.device_info["model"] == "DEFA Balancer"
+    assert entity.device_info["sw_version"] == FAKE_FIRMWARE
+
+
+@pytest.mark.unit
+def test_entity_device_info_firmware_none_when_coordinator_data_none() -> None:
+    """Test firmware is None in device_info when coordinator has no data."""
+    coordinator = _mock_coordinator(data=None)
+    entity = DEFABalancerMeasurementSensor(coordinator, ENTITY_DESCRIPTIONS[0])
+
+    assert entity.device_info is not None
+    assert entity.device_info["sw_version"] is None
