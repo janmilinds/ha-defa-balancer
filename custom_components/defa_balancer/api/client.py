@@ -24,10 +24,7 @@ def parse_packet(data: bytes) -> BalancerPacket | None:
         return None
 
     serial_raw = data[0:11].decode("ascii", errors="ignore").rstrip("\x00")
-    if serial_raw.startswith("L4"):
-        serial = serial_raw[2:]
-    else:
-        serial = serial_raw
+    serial = serial_raw[2:]
 
     # Byte 19 is a status marker in observed packets; L1 is at 20-21.
     l1_ma = int.from_bytes(data[20:22], "little")
