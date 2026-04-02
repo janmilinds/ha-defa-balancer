@@ -4,9 +4,10 @@ This guide will help you install and set up the DEFA Balancer custom integration
 
 ## Prerequisites
 
-- Home Assistant 2025.7.0 or newer
+- Home Assistant 2025.12.3 or newer
 - HACS (Home Assistant Community Store) installed
-- Network connectivity to [external service/device]
+- DEFA Balancer device on the same network as Home Assistant
+- Multicast UDP traffic to group `234.222.250.1` on port `57082` allowed on your network
 
 ## Installation
 
@@ -32,63 +33,53 @@ This guide will help you install and set up the DEFA Balancer custom integration
 
 ## Initial Setup
 
-After installation, add the integration:
+After installation, the integration automatically discovers your DEFA Balancer:
 
 1. Go to **Settings** → **Devices & Services**
 2. Click **+ Add Integration**
 3. Search for "DEFA Balancer"
-4. Follow the configuration steps:
+4. The integration will scan your network for up to 15 seconds
 
-### Step 1: Connection Information
+### Step 1: Device Selection
 
-Enter the required connection details:
+If your Balancer is found, you'll see it listed:
 
-- **Host/IP Address:** The hostname or IP address of your device/service
-- **API Key/Token:** Your authentication credentials (if applicable)
-- **Port:** Connection port (default: 8080)
+- Select the device you want to add
+- Click **Submit**
 
-Click **Submit** to test the connection.
+If no device is found, check:
+- DEFA Balancer is powered on and connected to the network
+- Home Assistant is on the same subnet/VLAN
+- Your router/switch allows multicast traffic
 
-### Step 2: Configuration Options
+### Step 2: Configuration
 
-Configure optional settings:
+After selection, the integration creates:
 
-- **Update Interval:** How often to poll for updates (default: 5 minutes)
-- **Name:** Friendly name for this integration instance
+- **Device:** Representing your DEFA Balancer
+- **Sensors:** L1/L2/L3 current (A) and power (W), plus total power
 
-Click **Submit** to complete setup.
+No additional configuration needed — data updates automatically every 10 seconds.
 
 ## What Gets Created
 
 After successful setup, the integration creates:
 
-### Devices
+### Device
 
-- **Device Name:** Main device representing your connected service/hardware
-  - Model information
-  - Software version
-  - Configuration URL (link to device web interface)
+- **DEFA Balancer {serial}** — with manufacturer, model, serial number, and firmware version
 
-### Entities
+### Sensors
 
-The following entities are automatically created:
-
-#### Sensors
-
-- `sensor.<device_name>_<sensor_name>` - Descriptive sensor measurements
-- More sensors as applicable to your setup
-
-#### Binary Sensors
-
-- `binary_sensor.<device_name>_<sensor_name>` - On/off status indicators
-
-#### Switches
-
-- `switch.<device_name>_<switch_name>` - Controllable on/off switches
-
-#### Other Platforms
-
-Additional entities may be created depending on your device capabilities.
+| Entity | Unit | Description |
+|---|---|---|
+| L1 Current | A | Phase 1 current |
+| L2 Current | A | Phase 2 current |
+| L3 Current | A | Phase 3 current |
+| L1 Power | W | Phase 1 power (current × 230V) |
+| L2 Power | W | Phase 2 power (current × 230V) |
+| L3 Power | W | Phase 3 power (current × 230V) |
+| Total Power | W | Combined power across all phases |
 
 ## First Steps
 
@@ -98,7 +89,7 @@ Add entities to your dashboard:
 
 1. Go to your dashboard
 2. Click **Edit Dashboard** → **Add Card**
-3. Choose card type (e.g., "Entities", "Glance")
+3. Choose card type (e.g., "Entities", "Gauge")
 4. Select entities from "DEFA Balancer"
 
 Example entities card:
@@ -107,62 +98,50 @@ Example entities card:
 type: entities
 title: DEFA Balancer
 entities:
-  - sensor.device_name_sensor
-  - binary_sensor.device_name_connectivity
-  - switch.device_name_switch
+  - sensor.defa_balancer_xxxx_l1_current
+  - sensor.defa_balancer_xxxx_l2_current
+  - sensor.defa_balancer_xxxx_l3_current
+  - sensor.defa_balancer_xxxx_total_power
 ```
 
 ### Automations
 
-Use the integration in automations:
+Use the sensors in automations:
 
-**Example - Trigger on sensor change:**
+**Example — Notify when total power exceeds threshold:**
 
 ```yaml
 automation:
-  - alias: "React to sensor value"
+  - alias: "High power alert"
     trigger:
-      - trigger: state
-        entity_id: sensor.device_name_sensor
+      - platform: numeric_state
+        entity_id: sensor.defa_balancer_xxxx_total_power
+        above: 10000
     action:
-      - action: notify.notify
+      - service: notify.notify
         data:
-          message: "Sensor changed to {{ trigger.to_state.state }}"
-```
-
-**Example - Control switch based on time:**
-
-```yaml
-automation:
-  - alias: "Turn on in morning"
-    trigger:
-      - trigger: time
-        at: "07:00:00"
-    action:
-      - action: switch.turn_on
-        target:
-          entity_id: switch.device_name_switch
+          message: "Total power exceeded 10 kW: {{ trigger.to_state.state }} W"
 ```
 
 ## Troubleshooting
 
-### Connection Failed
+### No Device Found During Setup
 
-If setup fails with connection errors:
+If the integration doesn't find your Balancer during the 15-second scan:
 
-1. Verify the host/IP address is correct and reachable
-2. Check that the API key/token is valid
-3. Ensure no firewall is blocking the connection
-4. Check Home Assistant logs for detailed error messages
+1. Verify the DEFA Balancer is powered on and connected to the network
+2. Confirm Home Assistant is on the same subnet/VLAN
+3. Check if multicast traffic is allowed on your router
+4. Try again — the integration will re-scan
 
-### Entities Not Updating
+### Sensors Show "Unavailable"
 
-If entities show "Unavailable" or don't update:
+This means the Balancer stopped sending data for more than 15 seconds:
 
-1. Check that the device/service is online
-2. Verify API credentials haven't expired
-3. Review logs: **Settings** → **System** → **Logs**
-4. Try reloading the integration
+1. Check power to the DEFA Balancer
+2. Verify the network cable is connected
+3. Ensure the Balancer is still on the same subnet
+4. Try reloading the integration from **Settings** → **Devices & Services**
 
 ### Debug Logging
 
@@ -180,12 +159,4 @@ Add this to `configuration.yaml`, restart, and reproduce the issue. Check logs f
 ## Next Steps
 
 - See [CONFIGURATION.md](./CONFIGURATION.md) for detailed configuration options
-- See [EXAMPLES.md](./EXAMPLES.md) for more automation examples
 - Report issues at [GitHub Issues](https://github.com/janmilinds/ha-defa-balancer/issues)
-
-## Support
-
-For help and discussion:
-
-- [GitHub Discussions](https://github.com/janmilinds/ha-defa-balancer/discussions)
-- [Home Assistant Community Forum](https://community.home-assistant.io/)

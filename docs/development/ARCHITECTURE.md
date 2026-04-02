@@ -9,49 +9,36 @@ custom_components/defa_balancer/
 ├── __init__.py              # Integration setup and unload
 ├── config_flow.py           # Config flow entry point
 ├── const.py                 # Constants and configuration keys
-├── coordinator/             # Data update coordinator package
-│   ├── __init__.py          # Exports DEFABalancerDataUpdateCoordinator
-│   ├── base.py              # Main coordinator class
-│   ├── data_processing.py   # Data validation and transformation
-│   ├── error_handling.py    # Error recovery and retry logic
-│   └── listeners.py         # Entity callbacks and event listeners
 ├── data.py                  # Data classes and type definitions
 ├── diagnostics.py           # Diagnostic data for troubleshooting
-├── entity/                  # Base entity package
-│   ├── __init__.py          # Exports DEFABalancerEntity
-│   └── base.py              # Base entity class implementation
 ├── manifest.json            # Integration metadata
 ├── repairs.py               # Repair flows for fixing issues
-├── services.yaml            # Service action definitions (legacy filename)
-├── api/                     # External API communication
+├── api/                     # UDP packet parser
 │   ├── __init__.py
-│   └── client.py            # API client implementation
-├── config_flow_handler/     # Config flow implementation
-│   ├── __init__.py          # Package exports
-│   ├── handler.py           # Backward compatibility wrapper
-│   ├── config_flow.py       # Main config flow (user, reauth, reconfigure)
-│   ├── options_flow.py      # Options flow
-│   ├── subentry_flow.py     # Subentry flow template
-│   ├── schemas/             # Voluptuous schemas
-│   │   ├── __init__.py      # Schema exports
-│   │   ├── config.py        # Config flow schemas
-│   │   └── options.py       # Options flow schemas
-│   └── validators/          # Input validation
-│       ├── __init__.py      # Validator exports
-│       ├── credentials.py   # Credential validation
-│       └── sanitizers.py    # Input sanitizers
-├── entity_utils/            # Entity helper utilities
+│   └── client.py            # parse_packet() function
+├── coordinator/             # Data update coordinator
+│   ├── __init__.py          # Exports coordinator class
+│   ├── base.py              # Main coordinator class
+│   └── listeners.py         # UDP listener implementations
+├── entity/                  # Base entity class
 │   ├── __init__.py
-│   ├── device_info.py       # Device information helpers
-│   └── state_helpers.py     # State management utilities
-├── service_actions/         # Service action implementations
+│   └── base.py              # DEFABalancerEntity
+├── entity_utils/            # Entity helpers
 │   ├── __init__.py
-│   └── example_service.py   # Example service action handler
-├── translations/            # Localization files
-│   └── en.json              # English translations
-└── <platform>/              # Platform-specific implementations
-    ├── __init__.py          # Platform setup
-    └── <entity>.py          # Individual entity implementations
+│   ├── device_info.py       # Device info mapping
+│   └── state_helpers.py     # State formatting
+├── config_flow_handler/     # Config flow
+│   ├── __init__.py
+│   ├── config_flow.py       # Discovery and setup + inline config form schemas
+│   └── schemas/             # Reserved for future form schemas (currently unused)
+│       ├── __init__.py
+│       └── config.py        # Placeholder for extracted config form schema
+├── sensor/                  # Sensor entities
+│   ├── __init__.py          # Platform setup
+│   └── measurement.py       # Individual sensors (L1/L2/L3 current/power, total)
+├── translations/            # Localization files (da, de, en, fi, nb, sv)
+├── utils/                   # Integration-wide utilities
+└── brand/                   # Brand assets (logos, etc.)
 ```
 
 ## Core Components
@@ -60,75 +47,77 @@ custom_components/defa_balancer/
 
 **Directory:** `coordinator/`
 
-The coordinator package manages periodic data fetching from the external API and distributes
-updates to all entities. It is organized as a package with separate modules for different concerns:
+The coordinator package manages data aggregation from UDP multicast packets and distributes
+updates to all entities:
 
 **Package structure:**
 
 - `base.py` - Main coordinator class (`DEFABalancerDataUpdateCoordinator`)
-- `data_processing.py` - Data validation, transformation, and caching utilities
-- `error_handling.py` - Error recovery strategies, retry logic, and circuit breaker patterns
-- `listeners.py` - Entity callbacks, event listeners, and performance monitoring
+- `listeners.py` - UDP listener implementations (`UDPBalancerListener`, `MockBalancerListener`, `_DatagramProtocol`)
 
 **Core functionality:**
 
-- Configurable update interval (default: 5 minutes)
-- Error handling with exponential backoff
+- Updates every 10 seconds from device broadcasts
+- Aggregates an average over the most recent buffered packets (up to 25) for current values (L1, L2, L3)
+- Calculates phase power using 230V fixed voltage
+- Error handling (stale timeout after 15 seconds)
 - Shared data access for all entities
-- Automatic retry on transient failures
-- Data validation and transformation before distribution
-- Performance monitoring and metrics
+- Automatic retry on failures
 
-**Key class:** `DEFABalancerDataUpdateCoordinator` (exported from `coordinator/__init__.py`)
+**Key classes:**
+
+- `DEFABalancerDataUpdateCoordinator` (exported from `coordinator/__init__.py`)
+- `UDPBalancerListener` (real UDP multicast implementation)
+- `MockBalancerListener` (for testing)
 
 **Design rationale:**
 
-The coordinator is structured as a package rather than a single file to support future extensibility:
+The coordinator aggregates packet data to smooth out individual transmission noise:
 
-- **Separation of concerns**: Core logic, error handling, and data processing are isolated
-- **Easy extension**: New features (caching, metrics, webhooks) can be added as new modules
-- **Maintainability**: Individual modules stay focused and manageable (<400 lines)
-- **Testability**: Each module can be tested independently
+- **Ring buffer averaging**: Averages all buffered packets (up to 25) to reduce jitter in reported currents
+- **Power calculation**: Uses fixed 230V per-phase voltage (DEFA standard)
+- **Stale timeout**: Marks unavailable after 15 seconds without data
+- **Packet buffering**: Maintains ring buffer of 25 latest packets
 
-### API Client
+### API Client (Packet Parser)
 
 **Directory:** `api/`
 
-Handles all communication with external APIs or devices. Implements:
+Handles parsing of incoming UDP multicast packets:
 
-- Async HTTP requests using `aiohttp`
-- Connection management and timeouts
-- Authentication handling
-- Error translation to custom exceptions
+- `parse_packet()`: Validates and parses 54-byte DEFA protocol packets
+- Extracts: serial number (L4-prefixed), L1/L2/L3 currents (A), firmware version
+- Returns `BalancerPacket` dataclass or `None` on parse error
+- Rejects packets not exactly 54 bytes
 
-**Key class:** `DEFABalancerApiClient`
+**Key functions:** `parse_packet()`
+
+**Protocol format:** 54-byte little-endian binary with fixed field layout
 
 ### Config Flow
 
 **Directory:** `config_flow_handler/`
 
-Implements the configuration UI for adding and configuring the integration. The package
-is organized modularly to support complex flows without becoming monolithic.
+Implements the discovery and configuration UI for the integration:
 
 **Structure:**
 
-- `config_flow.py`: Main flow (user setup, reauth, reconfigure)
-- `options_flow.py`: Options flow for post-setup configuration
-- `schemas/`: Voluptuous schemas for all forms
-- `validators/`: Validation logic separated from flow logic
-- `subentry_flow.py`: Template for multi-device/location support
+- `config_flow.py`: Main flow (discovery, selection, connection error handling)
+- `schemas/`: Voluptuous schemas for forms
 
 **Supported flows:**
 
-- Initial user setup with validation
-- Options flow for reconfiguration
-- Reauthentication flow for expired credentials
-- Ready for subentry flows (multi-device support)
+- **User (discovery):** Network scan → device selection → entry creation
+- **Connection error:** Handles multicast socket failures during discovery
+- **Retry:** Menu-based retry after empty scan
 
-**Key classes:**
+**Key class:** `DEFABalancerConfigFlowHandler`
 
-- `DEFABalancerConfigFlowHandler` (main flow)
-- `DEFABalancerOptionsFlow` (options)
+**Flow design:**
+
+- Scans network for up to 15 seconds (5s initial + 10s retry if nothing found)
+- No credentials or IP entry needed (all via multicast discovery)
+- Handles multiple devices on same network
 
 ### Base Entity
 
@@ -167,7 +156,12 @@ Platform entities inherit from both:
          │
          ▼
 ┌─────────────────┐
-│   Coordinator   │ ← Fetches data from API every 5 min
+│ UDP Listener    │ ← Receives multicast packets from DEFA Balancer
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Coordinator    │ ← Aggregates packets every 10 seconds
 └────────┬────────┘
          │
          ▼
@@ -176,10 +170,10 @@ Platform entities inherit from both:
     └────┬────┘
          │
     ┌────┴────────────────┐
-    │                     │
+    │         ...         │
     ▼                     ▼
 ┌─────────┐         ┌─────────┐
-│ Sensor  │         │ Switch  │ ← Entities read from coordinator
+│ Sensor  │         │ Sensor  │ ← 7 sensor entities
 └─────────┘         └─────────┘
 ```
 
