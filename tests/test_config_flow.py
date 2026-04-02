@@ -16,8 +16,42 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.defa_balancer.api import BalancerPacket
 from custom_components.defa_balancer.const import CONF_SERIAL, DOMAIN
 from test_constants import FAKE_DUPLICATE_SERIAL, FAKE_SERIAL
+
+
+class _FakeScanListener:
+    """Minimal scan listener for config flow e2e tests."""
+
+    def __init__(self) -> None:
+        self.start = AsyncMock()
+        self.stop = AsyncMock()
+
+    def get_all_serials(self) -> list[str]:
+        """Return a single discovered serial."""
+        return [FAKE_SERIAL]
+
+
+class _FakeUDPListener:
+    """Minimal setup listener used after config flow entry creation."""
+
+    def __init__(self, packets: list[BalancerPacket]) -> None:
+        self._packets = packets
+        self.packet_age = 0.0
+        self.start = AsyncMock()
+        self.stop = AsyncMock()
+        self.wait_for_packet = AsyncMock(return_value=True)
+
+    def get_latest(self) -> list[BalancerPacket]:
+        """Return latest packets snapshot."""
+        return list(self._packets)
+
+    def get_last_packet_age(self) -> float | None:
+        """Return packet freshness for coordinator checks."""
+        if not self._packets:
+            return None
+        return self.packet_age
 
 
 def _mock_listener() -> MagicMock:
@@ -176,3 +210,44 @@ async def test_config_flow_listener_start_failure_shows_connection_error(
         result = await hass.config_entries.flow.async_configure(result["flow_id"])
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == "connection_error"
+
+
+@pytest.mark.integration
+async def test_e2e_config_flow_create_entry_and_setup(
+    hass: HomeAssistant,
+    enable_custom_integrations: None,
+) -> None:
+    """E2E: config flow creates an entry that loads the integration successfully."""
+    scan_listener = _FakeScanListener()
+    setup_listener = _FakeUDPListener(
+        packets=[
+            BalancerPacket(serial=FAKE_SERIAL, l1=8.5, l2=7.2, l3=6.9, firmware="4.0.0"),
+        ]
+    )
+
+    async def one_device_scan(self) -> list[str]:
+        return [FAKE_SERIAL]
+
+    with (
+        patch(
+            "custom_components.defa_balancer.config_flow_handler.config_flow.UDPBalancerListener",
+            return_value=scan_listener,
+        ),
+        patch(
+            "custom_components.defa_balancer.config_flow_handler.config_flow.DEFABalancerConfigFlowHandler._do_scan",
+            one_device_scan,
+        ),
+        patch("custom_components.defa_balancer.UDPBalancerListener", return_value=setup_listener),
+    ):
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        while result["type"] in ("progress", "progress_done"):
+            result = await hass.config_entries.flow.async_configure(result["flow_id"])
+
+        assert result["type"] == "form"
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_SERIAL: FAKE_SERIAL})
+        assert result["type"] == "create_entry"
+
+        entry = hass.config_entries.async_entries(DOMAIN)[0]
+        await hass.async_block_till_done()
+
+        assert entry.state.name == "LOADED"

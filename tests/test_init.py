@@ -17,12 +17,15 @@ from custom_components.defa_balancer import (
     DEFAULT_MULTICAST_PORT,
     DEFAULT_UPDATE_INTERVAL_SECONDS,
     DOMAIN,
+    async_reload_entry,
     async_setup,
     async_setup_entry,
     async_unload_entry,
 )
+from custom_components.defa_balancer.api import BalancerPacket
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import entity_registry as er
 from test_constants import FAKE_SERIAL
 
 
@@ -38,6 +41,27 @@ def _mock_entry() -> MockConfigEntry:
         },
         entry_id="entry_test",
     )
+
+
+class _FakeUDPListener:
+    """Minimal listener used for integration-style setup tests."""
+
+    def __init__(self, packets: list[BalancerPacket]) -> None:
+        self._packets = packets
+        self.packet_age = 0.0
+        self.start = AsyncMock()
+        self.stop = AsyncMock()
+        self.wait_for_packet = AsyncMock(return_value=True)
+
+    def get_latest(self) -> list[BalancerPacket]:
+        """Return latest packets snapshot."""
+        return list(self._packets)
+
+    def get_last_packet_age(self) -> float | None:
+        """Return packet freshness for coordinator checks."""
+        if not self._packets:
+            return None
+        return self.packet_age
 
 
 @pytest.mark.unit
@@ -122,3 +146,171 @@ async def test_async_unload_entry_does_not_stop_listener_on_failure(hass: HomeAs
         assert await async_unload_entry(hass, entry) is False
 
     listener.stop.assert_not_awaited()
+
+
+@pytest.mark.integration
+async def test_e2e_setup_entry_creates_sensor_entities(
+    hass: HomeAssistant,
+    enable_custom_integrations: None,
+) -> None:
+    """E2E: config entry setup creates 7 sensor entities with valid states."""
+    entry = _mock_entry()
+    entry.add_to_hass(hass)
+
+    listener = _FakeUDPListener(
+        packets=[
+            BalancerPacket(serial=FAKE_SERIAL, l1=8.5, l2=7.2, l3=6.9, firmware="4.0.0"),
+        ]
+    )
+
+    with patch("custom_components.defa_balancer.UDPBalancerListener", return_value=listener):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+    registry = er.async_get(hass)
+    entities = er.async_entries_for_config_entry(registry, entry.entry_id)
+    assert len(entities) == 7
+
+    for entity in entities:
+        assert hass.states.get(entity.entity_id) is not None
+
+
+@pytest.mark.integration
+async def test_e2e_refresh_updates_sensor_state(
+    hass: HomeAssistant,
+    enable_custom_integrations: None,
+) -> None:
+    """E2E: coordinator refresh updates existing sensor state values."""
+    entry = _mock_entry()
+    entry.add_to_hass(hass)
+
+    listener = _FakeUDPListener(
+        packets=[
+            BalancerPacket(serial=FAKE_SERIAL, l1=8.5, l2=7.2, l3=6.9, firmware="4.0.0"),
+        ]
+    )
+
+    with patch("custom_components.defa_balancer.UDPBalancerListener", return_value=listener):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+        registry = er.async_get(hass)
+        entities = er.async_entries_for_config_entry(registry, entry.entry_id)
+        l1_entity = next(item for item in entities if item.unique_id.endswith("_l1"))
+
+        initial_state = hass.states.get(l1_entity.entity_id)
+        assert initial_state is not None
+        assert float(initial_state.state) == pytest.approx(8.5, abs=0.01)
+
+        listener._packets = [
+            BalancerPacket(serial=FAKE_SERIAL, l1=9.1, l2=7.2, l3=6.9, firmware="4.0.0"),
+        ]
+        await entry.runtime_data.coordinator.async_request_refresh()
+        await hass.async_block_till_done()
+
+        updated_state = hass.states.get(l1_entity.entity_id)
+        assert updated_state is not None
+        assert float(updated_state.state) == pytest.approx(9.1, abs=0.01)
+
+
+@pytest.mark.integration
+async def test_e2e_unload_entry_removes_sensor_states(
+    hass: HomeAssistant,
+    enable_custom_integrations: None,
+) -> None:
+    """E2E: unloading config entry removes entity states and stops listener."""
+    entry = _mock_entry()
+    entry.add_to_hass(hass)
+
+    listener = _FakeUDPListener(
+        packets=[
+            BalancerPacket(serial=FAKE_SERIAL, l1=8.5, l2=7.2, l3=6.9, firmware="4.0.0"),
+        ]
+    )
+
+    with patch("custom_components.defa_balancer.UDPBalancerListener", return_value=listener):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+        registry = er.async_get(hass)
+        entities = er.async_entries_for_config_entry(registry, entry.entry_id)
+        entity_ids = [entity.entity_id for entity in entities]
+        assert entity_ids
+
+        assert await hass.config_entries.async_unload(entry.entry_id)
+        await hass.async_block_till_done()
+
+    for entity_id in entity_ids:
+        state = hass.states.get(entity_id)
+        assert state is None or state.state == "unavailable"
+
+    listener.stop.assert_awaited_once()
+
+
+@pytest.mark.integration
+async def test_e2e_stale_data_marks_entities_unavailable(
+    hass: HomeAssistant,
+    enable_custom_integrations: None,
+) -> None:
+    """E2E: stale coordinator data marks entities unavailable."""
+    entry = _mock_entry()
+    entry.add_to_hass(hass)
+
+    listener = _FakeUDPListener(
+        packets=[
+            BalancerPacket(serial=FAKE_SERIAL, l1=8.5, l2=7.2, l3=6.9, firmware="4.0.0"),
+        ]
+    )
+
+    with patch("custom_components.defa_balancer.UDPBalancerListener", return_value=listener):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+        registry = er.async_get(hass)
+        entities = er.async_entries_for_config_entry(registry, entry.entry_id)
+        l1_entity = next(item for item in entities if item.unique_id.endswith("_l1"))
+
+        listener.packet_age = 20.0
+        await entry.runtime_data.coordinator.async_request_refresh()
+        await hass.async_block_till_done()
+
+        state = hass.states.get(l1_entity.entity_id)
+        assert state is not None
+        assert state.state == "unavailable"
+
+
+@pytest.mark.integration
+async def test_e2e_reload_entry_recreates_runtime_objects(
+    hass: HomeAssistant,
+    enable_custom_integrations: None,
+) -> None:
+    """E2E: reloading entry stops old listener and creates a new one."""
+    entry = _mock_entry()
+    entry.add_to_hass(hass)
+
+    first_listener = _FakeUDPListener(
+        packets=[
+            BalancerPacket(serial=FAKE_SERIAL, l1=8.5, l2=7.2, l3=6.9, firmware="4.0.0"),
+        ]
+    )
+    second_listener = _FakeUDPListener(
+        packets=[
+            BalancerPacket(serial=FAKE_SERIAL, l1=9.0, l2=7.5, l3=7.1, firmware="4.0.0"),
+        ]
+    )
+
+    with patch(
+        "custom_components.defa_balancer.UDPBalancerListener",
+        side_effect=[first_listener, second_listener],
+    ):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+        assert entry.runtime_data.listener is first_listener
+
+        await async_reload_entry(hass, entry)
+        await hass.async_block_till_done()
+
+        assert first_listener.stop.await_count >= 1
+        assert second_listener.start.await_count == 1
+        assert entry.runtime_data.listener is second_listener
