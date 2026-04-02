@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+import voluptuous as vol
 
+from custom_components.defa_balancer.const import (
+    DEFAULT_UNAVAILABLE_TIMEOUT_SECONDS,
+    ISSUE_ID_DEVICE_UNREACHABLE_PREFIX,
+)
 from homeassistant.components.repairs import RepairsFlow
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers import issue_registry as ir
-
-if TYPE_CHECKING:
-    from homeassistant.config_entries import ConfigEntry
 
 
 async def async_create_fix_flow(
@@ -19,59 +20,46 @@ async def async_create_fix_flow(
     data: dict[str, str | int | float | None] | None,
 ) -> RepairsFlow:
     """Create a repair flow based on the issue_id."""
-    # Map issue IDs to their corresponding repair flow classes
-    if issue_id == "deprecated_api_endpoint":
-        return DeprecatedApiEndpointRepairFlow()
-    if issue_id == "missing_configuration":
-        return MissingConfigurationRepairFlow()
+    if issue_id.startswith(f"{ISSUE_ID_DEVICE_UNREACHABLE_PREFIX}_"):
+        return DeviceUnreachableRepairFlow(issue_id, data)
 
-    # Fallback for unknown issue IDs
     return UnknownIssueRepairFlow(issue_id)
 
 
-class DeprecatedApiEndpointRepairFlow(RepairsFlow):
-    """Handler for deprecated API endpoint repair."""
+class DeviceUnreachableRepairFlow(RepairsFlow):
+    """Handle a repair flow when the device has been unreachable."""
+
+    def __init__(self, issue_id: str, data: dict[str, str | int | float | None] | None) -> None:
+        """Store issue ID for delete and retry actions."""
+        super().__init__()
+        self._issue_id = issue_id
+        self._entry_id = str(data.get("entry_id")) if data and data.get("entry_id") else None
 
     async def async_step_init(self, user_input: dict[str, str] | None = None) -> FlowResult:
-        """Handle the initial repair step."""
+        """Handle confirmation to retry setup for unreachable device."""
+        errors: dict[str, str] = {}
+
         if user_input is not None:
-            # User confirmed the fix - update the config entry
-            entry = cast(
-                "ConfigEntry",
-                self.hass.config_entries.async_get_entry(self.handler),
-            )
-            if entry:
-                new_data = {**entry.data, "api_version": "v2"}
-                self.hass.config_entries.async_update_entry(entry, data=new_data)
-
-                # Remove the repair issue
-                ir.async_delete_issue(self.hass, entry.domain, "deprecated_api_endpoint")
-
-                # Reload the config entry to use the new API endpoint
+            entry_id = self._entry_id or self.handler
+            entry = self.hass.config_entries.async_get_entry(entry_id)
+            if entry is None:
+                errors["base"] = "cannot_connect"
+            else:
                 await self.hass.config_entries.async_reload(entry.entry_id)
 
-            return self.async_create_entry(data={})
+                reloaded_entry = self.hass.config_entries.async_get_entry(entry.entry_id)
+                if reloaded_entry is None or reloaded_entry.state is not ConfigEntryState.LOADED:
+                    errors["base"] = "cannot_connect"
+                else:
+                    listener = reloaded_entry.runtime_data.listener
+                    packet_age = listener.get_last_packet_age()
+                    if packet_age is None or packet_age > DEFAULT_UNAVAILABLE_TIMEOUT_SECONDS:
+                        errors["base"] = "cannot_connect"
+                    else:
+                        # Issue is not deleted here; coordinator clears it automatically on recovery.
+                        return self.async_create_entry(data={})
 
-        return self.async_show_form(step_id="init")
-
-
-class MissingConfigurationRepairFlow(RepairsFlow):
-    """Handler for missing configuration repair."""
-
-    async def async_step_init(self, user_input: dict[str, str] | None = None) -> FlowResult:
-        """Handle the initial repair step."""
-        if user_input is not None:
-            # User acknowledged the issue - mark as resolved
-            entry = cast(
-                "ConfigEntry",
-                self.hass.config_entries.async_get_entry(self.handler),
-            )
-            if entry:
-                ir.async_delete_issue(self.hass, entry.domain, "missing_configuration")
-
-            return self.async_create_entry(data={})
-
-        return self.async_show_form(step_id="init")
+        return self.async_show_form(step_id="init", data_schema=vol.Schema({}), errors=errors)
 
 
 class UnknownIssueRepairFlow(RepairsFlow):

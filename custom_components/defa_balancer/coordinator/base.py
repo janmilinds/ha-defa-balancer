@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 from logging import Logger
+from time import monotonic
 from typing import TYPE_CHECKING
 
 from custom_components.defa_balancer.const import (
@@ -16,11 +17,15 @@ from custom_components.defa_balancer.const import (
     DATA_L3_POWER,
     DATA_PACKET_COUNT,
     DATA_TOTAL_POWER,
+    DEFAULT_OFFLINE_REPAIRS_THRESHOLD_SECONDS,
     DEFAULT_PHASE_VOLTAGE,
     DEFAULT_UNAVAILABLE_TIMEOUT_SECONDS,
+    DOMAIN,
+    ISSUE_ID_DEVICE_UNREACHABLE_PREFIX,
 )
 from custom_components.defa_balancer.coordinator.listeners import BalancerListener
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 if TYPE_CHECKING:
@@ -50,15 +55,60 @@ class DEFABalancerDataUpdateCoordinator(DataUpdateCoordinator[dict[str, float | 
             config_entry=config_entry,
         )
         self._listener = listener
+        self._offline_since: float | None = None
+        self._offline_issue_created = False
+
+    @property
+    def _offline_issue_id(self) -> str:
+        """Return issue ID scoped to the config entry."""
+        return f"{ISSUE_ID_DEVICE_UNREACHABLE_PREFIX}_{self.config_entry.entry_id}"
+
+    def _track_unavailable_state(self) -> None:
+        """Track continuous offline state and create a warning issue if needed."""
+        now = monotonic()
+        if self._offline_since is None:
+            self._offline_since = now
+
+        if self._offline_issue_created:
+            return
+
+        if now - self._offline_since < DEFAULT_OFFLINE_REPAIRS_THRESHOLD_SECONDS:
+            return
+
+        ir.async_create_issue(
+            self.hass,
+            DOMAIN,
+            self._offline_issue_id,
+            data={"entry_id": self.config_entry.entry_id},
+            is_fixable=True,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="device_unreachable",
+        )
+        self._offline_issue_created = True
+
+    def _clear_unavailable_state(self) -> None:
+        """Clear offline tracking and remove existing warning issue on recovery."""
+        self._offline_since = None
+        if not self._offline_issue_created:
+            return
+
+        ir.async_delete_issue(
+            self.hass,
+            DOMAIN,
+            self._offline_issue_id,
+        )
+        self._offline_issue_created = False
 
     async def _async_update_data(self) -> dict[str, float | int | str]:
         """Aggregate latest packet values for sensors."""
         packets = self._listener.get_latest()
         if not packets:
+            self._track_unavailable_state()
             raise UpdateFailed("No data received")
 
         last_packet_age = self._listener.get_last_packet_age()
         if last_packet_age is None or last_packet_age > DEFAULT_UNAVAILABLE_TIMEOUT_SECONDS:
+            self._track_unavailable_state()
             if last_packet_age is None:
                 raise UpdateFailed(f"No data received in the last {DEFAULT_UNAVAILABLE_TIMEOUT_SECONDS} seconds")
 
@@ -66,6 +116,8 @@ class DEFABalancerDataUpdateCoordinator(DataUpdateCoordinator[dict[str, float | 
                 f"No data received in the last {DEFAULT_UNAVAILABLE_TIMEOUT_SECONDS} "
                 f"seconds (latest data {last_packet_age:.1f}s ago)"
             )
+
+        self._clear_unavailable_state()
 
         packet_count = len(packets)
         l1 = sum(packet.l1 for packet in packets) / packet_count

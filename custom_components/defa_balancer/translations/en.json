@@ -34,6 +34,22 @@
       "no_device_found": "No DEFA Balancer found."
     }
   },
+  "issues": {
+    "device_unreachable": {
+      "title": "Device unreachable",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Retry DEFA Balancer connection",
+            "description": "Check the following before retrying:\n- Device is powered on\n- Device is connected to the network\n- Device is on the same subnet/VLAN as Home Assistant\n- Multicast UDP traffic is not blocked\n\nSelect continue to retry loading the integration."
+          }
+        },
+        "error": {
+          "cannot_connect": "Connection is still unavailable. Verify the checklist and try again."
+        }
+      }
+    }
+  },
   "entity": {
     "sensor": {
       "l1_current": {

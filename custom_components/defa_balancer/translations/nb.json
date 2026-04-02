@@ -34,6 +34,22 @@
       "no_device_found": "Fant ingen DEFA Balancer."
     }
   },
+  "issues": {
+    "device_unreachable": {
+      "title": "Enheten er ikke tilgjengelig",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Prøv DEFA Balancer-tilkoblingen på nytt",
+            "description": "Kontroller følgende før du prøver på nytt:\n- Enheten er slått på\n- Enheten er koblet til nettverket\n- Enheten er på samme subnett/VLAN som Home Assistant\n- Multicast UDP-trafikk blokkeres ikke\n\nVelg fortsett for å prøve å laste integrasjonen på nytt."
+          }
+        },
+        "error": {
+          "cannot_connect": "Tilkoblingen er fortsatt ikke tilgjengelig. Kontroller listen og prøv igjen."
+        }
+      }
+    }
+  },
   "entity": {
     "sensor": {
       "l1_current": {

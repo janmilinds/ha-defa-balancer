@@ -34,6 +34,22 @@
       "no_device_found": "DEFA Balanceria ei löytynyt."
     }
   },
+  "issues": {
+    "device_unreachable": {
+      "title": "Laite ei ole tavoitettavissa",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Yritä DEFA Balancer -yhteys uudelleen",
+            "description": "Tarkista seuraavat kohdat ennen uudelleenyritystä:\n- Laitteessa on virta päällä\n- Laite on kytketty verkkoon\n- Laite on samassa aliverkossa/VLANissa kuin Home Assistant\n- Multicast UDP -liikennettä ei estetä\n\nValitse jatka yrittääksesi integraation latausta uudelleen."
+          }
+        },
+        "error": {
+          "cannot_connect": "Yhteys ei ole vielä palautunut. Tarkista lista ja yritä uudelleen."
+        }
+      }
+    }
+  },
   "entity": {
     "sensor": {
       "l1_current": {
