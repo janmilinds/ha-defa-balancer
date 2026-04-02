@@ -18,7 +18,7 @@ from custom_components.defa_balancer.const import (
 from custom_components.defa_balancer.entity.base import DEFABalancerEntity
 from custom_components.defa_balancer.sensor.measurement import ENTITY_DESCRIPTIONS, DEFABalancerMeasurementSensor
 from homeassistant.const import UnitOfElectricCurrent, UnitOfPower
-from test_constants import FAKE_FIRMWARE, FAKE_SERIAL
+from tests.test_constants import FAKE_FIRMWARE, FAKE_SERIAL
 
 
 def _mock_coordinator(data: dict[str, object] | None = None) -> MagicMock:

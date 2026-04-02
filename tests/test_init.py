@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import MockConfigEntry, async_fire_time_changed
 
 from custom_components.defa_balancer import (
     CONF_MULTICAST_GROUP,
@@ -26,7 +27,8 @@ from custom_components.defa_balancer.api import BalancerPacket
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import entity_registry as er
-from test_constants import FAKE_SERIAL
+from homeassistant.util.dt import utcnow
+from tests.test_constants import FAKE_SERIAL
 
 
 def _mock_entry() -> MockConfigEntry:
@@ -323,15 +325,13 @@ async def test_e2e_fresh_data_restores_entities_from_unavailable(
         assert unavailable_state is not None
         assert unavailable_state.state == "unavailable"
 
-        # DataUpdateCoordinator debounces manual refresh requests for 10 seconds.
-        # Cancel the cooldown timer so the second request exercises recovery immediately.
-        entry.runtime_data.coordinator._debounced_refresh.async_cancel()
-
+        # Prepare fresh data and advance time past the coordinator's update
+        # interval so the next scheduled refresh picks up the recovery.
         listener.packet_age = 0.0
         listener._packets = [
             BalancerPacket(serial=FAKE_SERIAL, l1=9.3, l2=7.4, l3=7.0, firmware="4.0.0"),
         ]
-        await entry.runtime_data.coordinator.async_request_refresh()
+        async_fire_time_changed(hass, utcnow() + timedelta(seconds=DEFAULT_UPDATE_INTERVAL_SECONDS + 1))
         await hass.async_block_till_done()
 
         assert entry.runtime_data.coordinator.last_update_success is True

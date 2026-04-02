@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from custom_components.defa_balancer.api import parse_packet
-from test_constants import FAKE_FIRMWARE, FAKE_SERIAL
+from tests.test_constants import FAKE_FIRMWARE, FAKE_SERIAL
 
 
 def _build_packet(

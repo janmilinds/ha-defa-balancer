@@ -14,7 +14,7 @@ from custom_components.defa_balancer.coordinator.listeners import (
     UDPBalancerListener,
     _DatagramProtocol,
 )
-from test_constants import FAKE_FIRMWARE, FAKE_SERIAL
+from tests.test_constants import FAKE_FIRMWARE, FAKE_SERIAL
 
 
 def _packet(serial: str = FAKE_SERIAL, l1: float = 1.0, l2: float = 1.0, l3: float = 1.0) -> BalancerPacket:
@@ -171,7 +171,10 @@ async def test_udp_listener_receives_real_multicast_packet(socket_enabled: None)
         multicast_port = temp_sock.getsockname()[1]
 
     listener = UDPBalancerListener(multicast_group, multicast_port, serial=FAKE_SERIAL)
-    await listener.start()
+    try:
+        await listener.start()
+    except OSError:
+        pytest.skip("Multicast not available in this environment")
 
     try:
         sender = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)

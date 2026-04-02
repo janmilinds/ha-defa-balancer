@@ -23,7 +23,7 @@ from custom_components.defa_balancer.coordinator.listeners import MockBalancerLi
 from custom_components.defa_balancer.data import DEFABalancerConfigEntry
 from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
-from test_constants import DEFAULT_MOCK_L1, DEFAULT_MOCK_L2, DEFAULT_MOCK_L3, FAKE_FIRMWARE, FAKE_SERIAL
+from tests.test_constants import DEFAULT_MOCK_L1, DEFAULT_MOCK_L2, DEFAULT_MOCK_L3, FAKE_FIRMWARE, FAKE_SERIAL
 
 
 @pytest.fixture

@@ -26,7 +26,7 @@ from custom_components.defa_balancer.coordinator import DEFABalancerDataUpdateCo
 from custom_components.defa_balancer.coordinator.listeners import MockBalancerListener
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
-from test_constants import FAKE_FIRMWARE, FAKE_SERIAL
+from tests.test_constants import FAKE_FIRMWARE, FAKE_SERIAL
 
 _LOGGER = logging.getLogger(__name__)
 

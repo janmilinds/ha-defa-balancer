@@ -11,7 +11,7 @@ from custom_components.defa_balancer.api import BalancerPacket
 from custom_components.defa_balancer.const import CONF_SERIAL, DOMAIN
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
-from test_constants import FAKE_DUPLICATE_SERIAL, FAKE_SERIAL
+from tests.test_constants import FAKE_DUPLICATE_SERIAL, FAKE_SERIAL
 
 
 class _FakeScanListener:
@@ -69,9 +69,19 @@ async def _poll_until_done(hass: HomeAssistant, result: dict, max_steps: int = 5
 @pytest.mark.unit
 async def test_config_flow_user_step_starts_scanning(hass: HomeAssistant, enable_custom_integrations: None) -> None:
     """Test user step immediately starts scanning progress."""
-    with patch(
-        "custom_components.defa_balancer.config_flow_handler.config_flow.UDPBalancerListener",
-        return_value=_mock_listener(),
+
+    async def instant_scan(self) -> list[str]:
+        return []
+
+    with (
+        patch(
+            "custom_components.defa_balancer.config_flow_handler.config_flow.UDPBalancerListener",
+            return_value=_mock_listener(),
+        ),
+        patch(
+            "custom_components.defa_balancer.config_flow_handler.config_flow.DEFABalancerConfigFlowHandler._do_scan",
+            instant_scan,
+        ),
     ):
         result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
 
@@ -233,8 +243,7 @@ async def test_e2e_config_flow_create_entry_and_setup(
         patch("custom_components.defa_balancer.UDPBalancerListener", return_value=setup_listener),
     ):
         result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
-        while result["type"] in (FlowResultType.SHOW_PROGRESS, FlowResultType.SHOW_PROGRESS_DONE):
-            result = await hass.config_entries.flow.async_configure(result["flow_id"])
+        result = await _poll_until_done(hass, result)
 
         assert result["type"] == FlowResultType.FORM
         result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_SERIAL: FAKE_SERIAL})
@@ -276,16 +285,14 @@ async def test_e2e_config_flow_connection_error_then_retry_success(
         patch("custom_components.defa_balancer.UDPBalancerListener", return_value=setup_listener),
     ):
         result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
-        while result["type"] in (FlowResultType.SHOW_PROGRESS, FlowResultType.SHOW_PROGRESS_DONE):
-            result = await hass.config_entries.flow.async_configure(result["flow_id"])
+        result = await _poll_until_done(hass, result)
 
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == "connection_error"
 
         # Start a fresh user flow after the failed attempt.
         result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
-        while result["type"] in (FlowResultType.SHOW_PROGRESS, FlowResultType.SHOW_PROGRESS_DONE):
-            result = await hass.config_entries.flow.async_configure(result["flow_id"])
+        result = await _poll_until_done(hass, result)
 
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == "select"
