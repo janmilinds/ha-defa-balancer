@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import socket
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -19,6 +20,25 @@ from test_constants import FAKE_FIRMWARE, FAKE_SERIAL
 def _packet(serial: str = FAKE_SERIAL, l1: float = 1.0, l2: float = 1.0, l3: float = 1.0) -> BalancerPacket:
     """Create a simple packet fixture."""
     return BalancerPacket(serial=serial, l1=l1, l2=l2, l3=l3, firmware=FAKE_FIRMWARE)
+
+
+def _build_packet_bytes(
+    *,
+    serial: str = FAKE_SERIAL,
+    l1_ma: int = 8500,
+    l2_ma: int = 7200,
+    l3_ma: int = 6900,
+    firmware: str = FAKE_FIRMWARE,
+) -> bytes:
+    """Build a parsable 54-byte DEFA-like UDP payload."""
+    packet = bytearray(54)
+    packet[0:11] = f"L4{serial}".encode("ascii")[:11].ljust(11, b"\x00")
+    packet[19] = 0x41
+    packet[20:22] = int(l1_ma).to_bytes(2, "little")
+    packet[23:26] = int(l2_ma).to_bytes(3, "little")
+    packet[26:29] = int(l3_ma).to_bytes(3, "little")
+    packet[33:38] = firmware.encode("ascii")[:5].ljust(5, b"\x00")
+    return bytes(packet)
 
 
 @pytest.mark.unit
@@ -137,3 +157,40 @@ def test_datagram_protocol_pushes_matching_packet() -> None:
         protocol.datagram_received(b"packet", ("127.0.0.1", 1234))
 
     listener.push.assert_called_once_with(packet)
+
+
+@pytest.mark.integration
+@pytest.mark.enable_socket
+async def test_udp_listener_receives_real_multicast_packet(socket_enabled: None) -> None:
+    """Listener should receive and parse a real UDP multicast datagram."""
+    del socket_enabled
+    multicast_group = "239.255.0.10"
+
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as temp_sock:
+        temp_sock.bind(("", 0))
+        multicast_port = temp_sock.getsockname()[1]
+
+    listener = UDPBalancerListener(multicast_group, multicast_port, serial=FAKE_SERIAL)
+    await listener.start()
+
+    try:
+        sender = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        sender.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 1)
+        sender.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
+
+        try:
+            sender.sendto(_build_packet_bytes(), (multicast_group, multicast_port))
+
+            assert await listener.wait_for_packet(timeout=1.0) is True
+
+            packets = listener.get_latest()
+            assert len(packets) == 1
+            assert packets[0].serial == FAKE_SERIAL
+            assert packets[0].l1 == pytest.approx(8.5, abs=0.001)
+            assert packets[0].l2 == pytest.approx(7.2, abs=0.001)
+            assert packets[0].l3 == pytest.approx(6.9, abs=0.001)
+            assert packets[0].firmware == FAKE_FIRMWARE
+        finally:
+            sender.close()
+    finally:
+        await listener.stop()
