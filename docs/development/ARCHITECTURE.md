@@ -86,7 +86,7 @@ The coordinator aggregates packet data to smooth out individual transmission noi
 Handles parsing of incoming UDP multicast packets:
 
 - `parse_packet()`: Validates and parses 54-byte DEFA protocol packets
-- Extracts: serial number (L4-prefixed), L1/L2/L3 currents (mA), firmware version
+- Extracts: serial number (L4-prefixed), L1/L2/L3 currents (A), firmware version
 - Returns `BalancerPacket` dataclass or `None` on parse error
 - Rejects packets not exactly 54 bytes
 

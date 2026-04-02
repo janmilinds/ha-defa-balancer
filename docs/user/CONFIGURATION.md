@@ -74,7 +74,7 @@ All values update every 10 seconds.
 1. Verify DEFA Balancer is powered on and connected to network
 2. Confirm Home Assistant is on the same subnet/VLAN
 3. Check if multicast traffic is allowed:
-   - Login to your router
+   - Log in to your router
    - Disable IGMP snooping (if available)
    - Ensure multicast is not blocked
 4. Try adding the integration again (scans for up to 15 seconds)
