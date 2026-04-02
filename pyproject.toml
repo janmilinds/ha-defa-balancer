@@ -276,6 +276,8 @@ split-on-trailing-comma = false
     "PLR2004", # Magic values are fine in tests
     "D",       # Docstrings not required in tests
     "PTH",     # Use pathlib - temporary exemption for tests
+    "INP001",  # Implicit namespace package (tests are not a package)
+    "SLF001",  # Private member access is OK in tests (testing internals)
 ]
 
 [tool.ruff.lint.mccabe]
