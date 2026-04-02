@@ -9,6 +9,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.defa_balancer.api import BalancerPacket
 from custom_components.defa_balancer.const import CONF_SERIAL, DOMAIN
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from tests.test_constants import FAKE_DUPLICATE_SERIAL, FAKE_SERIAL
@@ -252,7 +253,7 @@ async def test_e2e_config_flow_create_entry_and_setup(
         entry = hass.config_entries.async_entries(DOMAIN)[0]
         await hass.async_block_till_done()
 
-        assert entry.state.name == "LOADED"
+        assert entry.state is ConfigEntryState.LOADED
 
 
 @pytest.mark.integration
@@ -303,5 +304,5 @@ async def test_e2e_config_flow_connection_error_then_retry_success(
         entry = hass.config_entries.async_entries(DOMAIN)[0]
         await hass.async_block_till_done()
 
-        assert entry.state.name == "LOADED"
+        assert entry.state is ConfigEntryState.LOADED
         successful_scan_listener.stop.assert_awaited_once()

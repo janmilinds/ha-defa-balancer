@@ -24,6 +24,7 @@ from custom_components.defa_balancer import (
     async_unload_entry,
 )
 from custom_components.defa_balancer.api import BalancerPacket
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import entity_registry as er
@@ -417,7 +418,7 @@ async def test_e2e_setup_retry_recovery(
         # Recovery: reload succeeds
         await async_reload_entry(hass, entry)
         await hass.async_block_till_done()
-        assert entry.state.name == "LOADED"
+        assert entry.state is ConfigEntryState.LOADED
 
         recovery_listener.start.assert_awaited_once()
         assert entry.runtime_data.listener is recovery_listener

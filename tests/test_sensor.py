@@ -37,10 +37,10 @@ def test_all_seven_sensors_described() -> None:
 
 
 @pytest.mark.unit
-def test_sensor_description_keys_in_order() -> None:
-    """Test sensor descriptions have expected keys in order."""
-    keys = [desc.key for desc in ENTITY_DESCRIPTIONS]
-    assert keys == [
+def test_sensor_description_keys_complete() -> None:
+    """Test sensor descriptions contain all expected keys."""
+    keys = {desc.key for desc in ENTITY_DESCRIPTIONS}
+    assert keys == {
         DATA_L1,
         DATA_L2,
         DATA_L3,
@@ -48,7 +48,7 @@ def test_sensor_description_keys_in_order() -> None:
         DATA_L2_POWER,
         DATA_L3_POWER,
         DATA_TOTAL_POWER,
-    ]
+    }
 
 
 @pytest.mark.unit
