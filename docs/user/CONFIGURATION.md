@@ -1,76 +1,41 @@
 # Configuration Reference
 
-This document describes all configuration options and settings available in the DEFA Balancer custom integration.
+This document describes all configuration options for the DEFA Balancer custom integration.
 
-## Integration Configuration
+## Discovery and Setup
 
-### Initial Setup Options
+The DEFA Balancer uses automatic network discovery. When you add the integration:
 
-These options are configured during initial setup via the Home Assistant UI.
+1. The integration scans your network for DEFA Balancer devices (multicast group `234.222.250.1:57082`)
+2. Devices are detected and listed automatically
+3. Select a device to begin monitoring
 
-#### Connection Settings
+**No manual IP or authentication configuration is needed.**
 
-| Option | Type | Required | Default | Description |
-|--------|------|----------|---------|-------------|
-| **Host** | string | Yes | - | Hostname or IP address of the device/service |
-| **Port** | integer | No | 8080 | Connection port |
-| **API Key** | string | Yes* | - | Authentication key or token |
-| **Use SSL** | boolean | No | false | Enable HTTPS connection |
+## Multicast Network Requirements
 
-*Required if the device/service requires authentication.
+For discovery and operation:
 
-#### Update Settings
+- Home Assistant must be on the same subnet or VLAN as the DEFA Balancer
+- Multicast traffic to `234.222.250.1:57082` must be allowed (check router/firewall)
+- Both devices should be on IPv4 networks (IPv6 multicast not currently supported)
 
-| Option | Type | Required | Default | Description |
-|--------|------|----------|---------|-------------|
-| **Update Interval** | integer (seconds) | No | 300 | How often to poll for updates (minimum: 30 seconds) |
-| **Name** | string | No | "Device" | Friendly name for the integration instance |
+## Update Interval
 
-### Options Flow (Reconfiguration)
+Data updates are processed by Home Assistant every 10 seconds by default from the Balancer's multicast broadcasts. The Balancer's multicast behavior is determined by the device firmware, while the integration's default 10-second update interval is set in its configuration (not currently adjustable via the Home Assistant UI).
 
-After initial setup, you can modify settings:
+## Entity Customization
 
-1. Go to **Settings** → **Devices & Services**
-2. Find "DEFA Balancer"
-3. Click **Configure**
-4. Modify settings
-5. Click **Submit**
-
-**Available options:**
-
-- Update interval
-- Name/identifier
-- Connection timeout
-- Additional features (device-specific)
-
-## Entity Configuration
-
-### Entity Customization
-
-Customize entities via the UI or `configuration.yaml`:
-
-#### Via Home Assistant UI
+You can customize individual entity properties via the Home Assistant UI:
 
 1. Go to **Settings** → **Devices & Services** → **Entities**
-2. Find and click the entity
+2. Find and click the entity (e.g., "Balancer L1 Current")
 3. Click the settings icon
 4. Modify:
-   - Entity ID
-   - Name
-   - Icon
-   - Device class (for applicable entities)
-   - Area assignment
-
-#### Via configuration.yaml
-
-```yaml
-homeassistant:
-  customize:
-    sensor.device_name_sensor:
-      friendly_name: "Custom Sensor Name"
-      icon: mdi:custom-icon
-      unit_of_measurement: "units"
-```
+   - **Entity ID** - Unique identifier (used in automations)
+   - **Name** - Display name
+   - **Icon** - Visual icon (e.g., `mdi:lightning-bolt`)
+   - **Area assignment** - Organize into rooms/areas
 
 ### Disabling Entities
 
@@ -83,85 +48,55 @@ If you don't need certain entities:
 
 Disabled entities won't update or consume resources.
 
-## Services
+## Sensors Provided
 
-The integration provides the following services:
+The integration creates the following sensors for each DEFA Balancer:
 
-### `defa_balancer.example_service`
+### Per-Phase Sensors
 
-Execute an example service action on the device.
+- **L1 Current** (A) - Amperage on phase 1
+- **L2 Current** (A) - Amperage on phase 2
+- **L3 Current** (A) - Amperage on phase 3
+- **L1 Power** (W) - Calculated power on phase 1 (current × 230V)
+- **L2 Power** (W) - Calculated power on phase 2 (current × 230V)
+- **L3 Power** (W) - Calculated power on phase 3 (current × 230V)
 
-**Service data:**
+### Total Sensor
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `entity_id` | string or list | No | Target entity/entities (if omitted, targets all) |
-| `parameter` | string | Yes | Service-specific parameter |
-| `value` | integer | No | Numeric value for the action |
+- **Total Power** (W) - Sum of L1, L2, and L3 power
 
-**Example:**
+All values update every 10 seconds.
 
-```yaml
-service: defa_balancer.example_service
-target:
-  entity_id: switch.device_name_switch
-data:
-  parameter: "setting_name"
-  value: 42
-```
+## Troubleshooting
 
-### Using Services in Automations
+### "No devices found" during setup
 
-```yaml
-automation:
-  - alias: "Call service at sunset"
-    trigger:
-      - trigger: sun
-        event: sunset
-    action:
-      - action: defa_balancer.example_service
-        target:
-          entity_id: switch.device_name_switch
-        data:
-          parameter: "mode"
-          value: 1
-```
+1. Verify DEFA Balancer is powered on and connected to network
+2. Confirm Home Assistant is on the same subnet/VLAN
+3. Check if multicast traffic is allowed:
+   - Login to your router
+   - Disable IGMP snooping (if available)
+   - Ensure multicast is not blocked
+4. Try adding the integration again (scans for up to 15 seconds)
 
-## Advanced Configuration
+### Sensors show "unavailable"
 
-### Multiple Instances
+1. Check power to DEFA Balancer
+2. Verify network cable is connected
+3. Check if Balancer is on same subnet as Home Assistant
+4. Restart the integration:
+   - Go to **Settings** → **Devices & Services**
+   - Find "DEFA Balancer"
+   - Click the three dots
+   - Select "Reload"
 
-You can add multiple instances of this integration for different devices:
+### Stale data warning
 
-1. Go to **Settings** → **Devices & Services**
-2. Click **+ Add Integration**
-3. Search for "DEFA Balancer"
-4. Configure with different connection details
+If sensors show "unavailable" after 15 seconds without updates (or stay "unknown" and never receive a first value):
 
-Each instance creates separate entities with unique entity IDs.
-
-### Network Configuration
-
-If the device is on a different network or behind a firewall:
-
-- Ensure ports are open (default: 8080)
-- Configure port forwarding if needed
-- Consider VPN for remote access
-- Some devices may require static IP addresses
-
-### Polling Behavior
-
-The integration uses polling to fetch updates:
-
-- **Minimum interval:** 30 seconds (prevents overloading the device)
-- **Recommended interval:** 5 minutes (default)
-- **Longer intervals:** Save resources but reduce responsiveness
-
-Adjust based on your needs:
-
-- Real-time monitoring: 30-60 seconds
-- Regular updates: 5 minutes
-- Slow-changing values: 15-30 minutes
+1. Check network connectivity
+2. Look for firewall or multicast blocking
+3. Restart Home Assistant to force reconnection
 
 ## Diagnostic Data
 
@@ -172,78 +107,4 @@ The integration provides diagnostic data for troubleshooting:
 3. Click on the device
 4. Click **Download Diagnostics**
 
-Diagnostic data includes:
-
-- Connection status
-- Last update timestamp
-- API response data
-- Entity states
-- Error history
-
-**Privacy note:** Diagnostic data may contain sensitive information. Review before sharing.
-
-## Blueprints
-
-The integration works with Home Assistant Blueprints for reusable automations:
-
-### Example Blueprint
-
-```yaml
-blueprint:
-  name: DEFA Balancer Alert
-  description: Send notification when sensor exceeds threshold
-  domain: automation
-  input:
-    sensor_entity:
-      name: Sensor
-      selector:
-        entity:
-          domain: sensor
-          integration: defa_balancer
-    threshold:
-      name: Threshold
-      selector:
-        number:
-          min: 0
-          max: 100
-
-trigger:
-  - trigger: numeric_state
-    entity_id: !input sensor_entity
-    above: !input threshold
-
-action:
-  - action: notify.notify
-    data:
-      message: "Sensor exceeded threshold!"
-```
-
-## Configuration Examples
-
-See [EXAMPLES.md](./EXAMPLES.md) for complete automation and dashboard examples.
-
-## Troubleshooting Configuration
-
-### Config Entry Fails to Load
-
-If the integration fails to load after configuration:
-
-1. Check Home Assistant logs for errors
-2. Verify connection details are correct
-3. Test connectivity from Home Assistant to the device
-4. Try removing and re-adding the integration
-
-### Options Don't Save
-
-If configuration changes aren't persisted:
-
-1. Check for validation errors in the UI
-2. Ensure values are within allowed ranges
-3. Review logs for detailed error messages
-4. Try restarting Home Assistant
-
-## Related Documentation
-
-- [Getting Started](./GETTING_STARTED.md) - Installation and initial setup
-- [Examples](./EXAMPLES.md) - Automation and dashboard examples
-- [GitHub Issues](https://github.com/janmilinds/ha-defa-balancer/issues) - Report problems
+Diagnostic data includes current sensor states and connection information. Review before sharing publicly.
