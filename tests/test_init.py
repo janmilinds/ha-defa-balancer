@@ -327,3 +327,45 @@ async def test_e2e_reload_entry_recreates_runtime_objects(
         assert first_listener.stop.await_count >= 1
         assert second_listener.start.await_count == 1
         assert entry.runtime_data.listener is second_listener
+
+
+@pytest.mark.integration
+async def test_e2e_setup_retry_recovery(
+    hass: HomeAssistant,
+    enable_custom_integrations: None,
+) -> None:
+    """E2E: setup failure followed by successful reload puts entry in LOADED state."""
+    entry = _mock_entry()
+    entry.add_to_hass(hass)
+
+    # First listener: wait_for_packet returns False → ConfigEntryNotReady
+    failing_listener = MagicMock()
+    failing_listener.start = AsyncMock()
+    failing_listener.stop = AsyncMock()
+    failing_listener.wait_for_packet = AsyncMock(return_value=False)
+
+    # Second listener: succeeds normally
+    recovery_listener = _FakeUDPListener(
+        packets=[
+            BalancerPacket(serial=FAKE_SERIAL, l1=8.5, l2=7.2, l3=6.9, firmware="4.0.0"),
+        ]
+    )
+
+    with patch(
+        "custom_components.defa_balancer.UDPBalancerListener",
+        side_effect=[failing_listener, recovery_listener],
+    ):
+        # First attempt fails: entry enters SETUP_RETRY
+        assert not await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        assert entry.state.name == "SETUP_RETRY"
+
+        failing_listener.stop.assert_awaited_once()
+
+        # Recovery: reload succeeds
+        await async_reload_entry(hass, entry)
+        await hass.async_block_till_done()
+        assert entry.state.name == "LOADED"
+
+        recovery_listener.start.assert_awaited_once()
+        assert entry.runtime_data.listener is recovery_listener
