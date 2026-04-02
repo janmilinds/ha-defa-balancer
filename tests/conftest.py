@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+import logging
 from typing import Any
 from unittest.mock import MagicMock
 
@@ -85,7 +86,7 @@ async def coordinator(
 
     coordinator = DEFABalancerDataUpdateCoordinator(
         hass=hass,
-        logger=hass.logger,
+        logger=logging.getLogger(__name__),
         name="DEFA Balancer",
         update_interval=timedelta(seconds=DEFAULT_UPDATE_INTERVAL_SECONDS),
         listener=mock_listener,
