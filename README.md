@@ -32,7 +32,7 @@ The DEFA Balancer is a load management module designed for EV charging installat
 
 ## Requirements
 
-- Home Assistant 2024.1 or newer
+- Home Assistant 2025.12.3 or newer
 - DEFA Balancer connected to the same network/subnet/VLAN as Home Assistant
 - Multicast traffic (group `234.222.250.1`) allowed on your network
 

@@ -4,7 +4,7 @@ This guide will help you install and set up the DEFA Balancer custom integration
 
 ## Prerequisites
 
-- Home Assistant 2024.1 or newer
+- Home Assistant 2025.12.3 or newer
 - HACS (Home Assistant Community Store) installed
 - DEFA Balancer device on the same network as Home Assistant
 - Multicast traffic (group `234.222.250.1`) allowed on your network
@@ -114,11 +114,11 @@ Use the sensors in automations:
 automation:
   - alias: "High power alert"
     trigger:
-      - trigger: numeric_state
+      - platform: numeric_state
         entity_id: sensor.defa_balancer_xxxx_total_power
         above: 10000
     action:
-      - action: notify.notify
+      - service: notify.notify
         data:
           message: "Total power exceeded 10 kW: {{ trigger.to_state.state }} W"
 ```

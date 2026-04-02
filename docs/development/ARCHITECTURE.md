@@ -73,7 +73,7 @@ updates to all entities:
 
 The coordinator aggregates packet data to smooth out individual transmission noise:
 
-- **Three-packet averaging**: Reduces jitter in reported currents
+- **Ring buffer averaging**: Averages all buffered packets (up to 25) to reduce jitter in reported currents
 - **Power calculation**: Uses fixed 230V per-phase voltage (DEFA standard)
 - **Stale timeout**: Marks unavailable after 15 seconds without data
 - **Packet buffering**: Maintains ring buffer of 25 latest packets
