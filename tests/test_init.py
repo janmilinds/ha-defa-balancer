@@ -180,7 +180,7 @@ async def test_e2e_refresh_updates_sensor_state(
     hass: HomeAssistant,
     enable_custom_integrations: None,
 ) -> None:
-    """E2E: coordinator refresh updates existing sensor state values."""
+    """E2E: coordinator refresh updates all 7 sensor state values."""
     entry = _mock_entry()
     entry.add_to_hass(hass)
 
@@ -196,21 +196,34 @@ async def test_e2e_refresh_updates_sensor_state(
 
         registry = er.async_get(hass)
         entities = er.async_entries_for_config_entry(registry, entry.entry_id)
-        l1_entity = next(item for item in entities if item.unique_id.endswith("_l1"))
 
-        initial_state = hass.states.get(l1_entity.entity_id)
-        assert initial_state is not None
-        assert float(initial_state.state) == pytest.approx(8.5, abs=0.01)
+        def _state(suffix: str) -> float:
+            entity = next(e for e in entities if e.unique_id.endswith(suffix))
+            return float(hass.states.get(entity.entity_id).state)  # type: ignore[union-attr]
 
+        # Initial values: l1=8.5, l2=7.2, l3=6.9, voltage=230V
+        assert _state("_l1") == pytest.approx(8.5, abs=0.001)
+        assert _state("_l2") == pytest.approx(7.2, abs=0.001)
+        assert _state("_l3") == pytest.approx(6.9, abs=0.001)
+        assert _state("_l1_power") == pytest.approx(1955.0, abs=0.1)
+        assert _state("_l2_power") == pytest.approx(1656.0, abs=0.1)
+        assert _state("_l3_power") == pytest.approx(1587.0, abs=0.1)
+        assert _state("_total_power") == pytest.approx(5198.0, abs=0.1)
+
+        # Update l1 only — only l1, l1_power and total_power should change
         listener._packets = [
             BalancerPacket(serial=FAKE_SERIAL, l1=9.1, l2=7.2, l3=6.9, firmware="4.0.0"),
         ]
         await entry.runtime_data.coordinator.async_request_refresh()
         await hass.async_block_till_done()
 
-        updated_state = hass.states.get(l1_entity.entity_id)
-        assert updated_state is not None
-        assert float(updated_state.state) == pytest.approx(9.1, abs=0.01)
+        assert _state("_l1") == pytest.approx(9.1, abs=0.001)
+        assert _state("_l2") == pytest.approx(7.2, abs=0.001)
+        assert _state("_l3") == pytest.approx(6.9, abs=0.001)
+        assert _state("_l1_power") == pytest.approx(2093.0, abs=0.1)
+        assert _state("_l2_power") == pytest.approx(1656.0, abs=0.1)
+        assert _state("_l3_power") == pytest.approx(1587.0, abs=0.1)
+        assert _state("_total_power") == pytest.approx(5336.0, abs=0.1)
 
 
 @pytest.mark.integration
