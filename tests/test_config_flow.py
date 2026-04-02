@@ -2,22 +2,15 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
-from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
-
-# Add custom_components to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.defa_balancer.api import BalancerPacket
 from custom_components.defa_balancer.const import CONF_SERIAL, DOMAIN
+from homeassistant.core import HomeAssistant
+from homeassistant.data_entry_flow import FlowResultType
 from test_constants import FAKE_DUPLICATE_SERIAL, FAKE_SERIAL
 
 
@@ -240,12 +233,12 @@ async def test_e2e_config_flow_create_entry_and_setup(
         patch("custom_components.defa_balancer.UDPBalancerListener", return_value=setup_listener),
     ):
         result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
-        while result["type"] in ("progress", "progress_done"):
+        while result["type"] in (FlowResultType.SHOW_PROGRESS, FlowResultType.SHOW_PROGRESS_DONE):
             result = await hass.config_entries.flow.async_configure(result["flow_id"])
 
-        assert result["type"] == "form"
+        assert result["type"] == FlowResultType.FORM
         result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_SERIAL: FAKE_SERIAL})
-        assert result["type"] == "create_entry"
+        assert result["type"] == FlowResultType.CREATE_ENTRY
 
         entry = hass.config_entries.async_entries(DOMAIN)[0]
         await hass.async_block_till_done()
@@ -283,22 +276,22 @@ async def test_e2e_config_flow_connection_error_then_retry_success(
         patch("custom_components.defa_balancer.UDPBalancerListener", return_value=setup_listener),
     ):
         result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
-        while result["type"] in ("progress", "progress_done"):
+        while result["type"] in (FlowResultType.SHOW_PROGRESS, FlowResultType.SHOW_PROGRESS_DONE):
             result = await hass.config_entries.flow.async_configure(result["flow_id"])
 
-        assert result["type"] == "form"
+        assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == "connection_error"
 
         # Start a fresh user flow after the failed attempt.
         result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
-        while result["type"] in ("progress", "progress_done"):
+        while result["type"] in (FlowResultType.SHOW_PROGRESS, FlowResultType.SHOW_PROGRESS_DONE):
             result = await hass.config_entries.flow.async_configure(result["flow_id"])
 
-        assert result["type"] == "form"
+        assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == "select"
 
         result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_SERIAL: FAKE_SERIAL})
-        assert result["type"] == "create_entry"
+        assert result["type"] == FlowResultType.CREATE_ENTRY
 
         entry = hass.config_entries.async_entries(DOMAIN)[0]
         await hass.async_block_till_done()

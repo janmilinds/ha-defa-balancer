@@ -2,13 +2,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-import sys
-
 import pytest
-
-# Add custom_components to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from custom_components.defa_balancer.api import parse_packet
 from test_constants import FAKE_FIRMWARE, FAKE_SERIAL

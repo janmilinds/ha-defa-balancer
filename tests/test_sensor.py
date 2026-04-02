@@ -2,16 +2,9 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-import sys
 from unittest.mock import MagicMock
 
 import pytest
-
-from homeassistant.const import UnitOfElectricCurrent, UnitOfPower
-
-# Add custom_components to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from custom_components.defa_balancer.const import (
     DATA_L1,
@@ -24,6 +17,7 @@ from custom_components.defa_balancer.const import (
 )
 from custom_components.defa_balancer.entity.base import DEFABalancerEntity
 from custom_components.defa_balancer.sensor.measurement import ENTITY_DESCRIPTIONS, DEFABalancerMeasurementSensor
+from homeassistant.const import UnitOfElectricCurrent, UnitOfPower
 from test_constants import FAKE_FIRMWARE, FAKE_SERIAL
 
 

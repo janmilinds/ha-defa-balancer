@@ -4,18 +4,10 @@ from __future__ import annotations
 
 from datetime import timedelta
 import logging
-from pathlib import Path
-import sys
 from unittest.mock import patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import UpdateFailed
-
-# Add custom_components to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from custom_components.defa_balancer.api import BalancerPacket
 from custom_components.defa_balancer.const import (
@@ -32,6 +24,8 @@ from custom_components.defa_balancer.const import (
 )
 from custom_components.defa_balancer.coordinator import DEFABalancerDataUpdateCoordinator
 from custom_components.defa_balancer.coordinator.listeners import MockBalancerListener
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.update_coordinator import UpdateFailed
 from test_constants import FAKE_FIRMWARE, FAKE_SERIAL
 
 _LOGGER = logging.getLogger(__name__)

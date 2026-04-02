@@ -3,18 +3,10 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from pathlib import Path
-import sys
 from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
-
-from homeassistant.const import CONF_NAME
-from homeassistant.core import HomeAssistant
-
-# Add custom_components to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from custom_components.defa_balancer.api import BalancerPacket
 from custom_components.defa_balancer.const import (
@@ -29,6 +21,8 @@ from custom_components.defa_balancer.const import (
 from custom_components.defa_balancer.coordinator import DEFABalancerDataUpdateCoordinator
 from custom_components.defa_balancer.coordinator.listeners import MockBalancerListener
 from custom_components.defa_balancer.data import DEFABalancerConfigEntry
+from homeassistant.const import CONF_NAME
+from homeassistant.core import HomeAssistant
 from test_constants import DEFAULT_MOCK_L1, DEFAULT_MOCK_L2, DEFAULT_MOCK_L3, FAKE_FIRMWARE, FAKE_SERIAL
 
 
