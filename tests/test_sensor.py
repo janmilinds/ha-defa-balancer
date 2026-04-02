@@ -15,7 +15,7 @@ from custom_components.defa_balancer.const import (
     DATA_L3_POWER,
     DATA_TOTAL_POWER,
 )
-from custom_components.defa_balancer.entity.base import DEFABalancerEntity
+from custom_components.defa_balancer.entity import DEFABalancerEntity
 from custom_components.defa_balancer.sensor.measurement import ENTITY_DESCRIPTIONS, DEFABalancerMeasurementSensor
 from homeassistant.const import UnitOfElectricCurrent, UnitOfPower
 from tests.test_constants import FAKE_FIRMWARE, FAKE_SERIAL

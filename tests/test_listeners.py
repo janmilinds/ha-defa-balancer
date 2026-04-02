@@ -4,16 +4,11 @@ from __future__ import annotations
 
 import asyncio
 import socket
-from unittest.mock import MagicMock, patch
 
 import pytest
 
-from custom_components.defa_balancer.api import BalancerPacket
-from custom_components.defa_balancer.coordinator.listeners import (
-    MockBalancerListener,
-    UDPBalancerListener,
-    _DatagramProtocol,
-)
+from custom_components.defa_balancer.api import BalancerPacket, parse_packet
+from custom_components.defa_balancer.coordinator.listeners import MockBalancerListener, UDPBalancerListener
 from tests.test_constants import FAKE_FIRMWARE, FAKE_SERIAL
 
 
@@ -117,46 +112,34 @@ async def test_udp_listener_get_latest_returns_copy() -> None:
 
 
 @pytest.mark.unit
-def test_datagram_protocol_ignores_invalid_packet() -> None:
-    """Protocol should ignore datagrams that fail parsing."""
-    listener = UDPBalancerListener("234.222.250.1", 57082, serial=None)
-    listener.push = MagicMock()  # type: ignore[method-assign]
-    protocol = _DatagramProtocol(listener)
-
-    with patch("custom_components.defa_balancer.coordinator.listeners.parse_packet", return_value=None):
-        protocol.datagram_received(b"invalid", ("127.0.0.1", 1234))
-
-    listener.push.assert_not_called()
+def test_parse_packet_returns_none_for_invalid_data() -> None:
+    """parse_packet should return None for data that cannot be decoded."""
+    assert parse_packet(b"invalid") is None
+    assert parse_packet(b"") is None
+    assert parse_packet(b"\x00" * 10) is None
 
 
 @pytest.mark.unit
-def test_datagram_protocol_filters_non_matching_serial() -> None:
-    """Protocol should drop packets whose serial does not match filter."""
+async def test_listener_push_buffers_any_packet() -> None:
+    """push() should unconditionally buffer the given packet."""
     listener = UDPBalancerListener("234.222.250.1", 57082, serial=FAKE_SERIAL)
-    listener.push = MagicMock()  # type: ignore[method-assign]
-    protocol = _DatagramProtocol(listener)
-
-    with patch(
-        "custom_components.defa_balancer.coordinator.listeners.parse_packet",
-        return_value=_packet(serial="OTHER123"),
-    ):
-        protocol.datagram_received(b"packet", ("127.0.0.1", 1234))
-
-    listener.push.assert_not_called()
-
-
-@pytest.mark.unit
-def test_datagram_protocol_pushes_matching_packet() -> None:
-    """Protocol should push packets when serial matches or no filter is set."""
-    listener = UDPBalancerListener("234.222.250.1", 57082, serial=FAKE_SERIAL)
-    listener.push = MagicMock()  # type: ignore[method-assign]
-    protocol = _DatagramProtocol(listener)
     packet = _packet(serial=FAKE_SERIAL)
 
-    with patch("custom_components.defa_balancer.coordinator.listeners.parse_packet", return_value=packet):
-        protocol.datagram_received(b"packet", ("127.0.0.1", 1234))
+    listener.push(packet)
 
-    listener.push.assert_called_once_with(packet)
+    packets = listener.get_latest()
+    assert len(packets) == 1
+    assert packets[0] is packet
+
+
+@pytest.mark.unit
+def test_listener_serial_attribute_is_set() -> None:
+    """Listener should store the serial filter for protocol-level filtering."""
+    listener = UDPBalancerListener("234.222.250.1", 57082, serial=FAKE_SERIAL)
+    assert listener.serial == FAKE_SERIAL
+
+    listener_no_filter = UDPBalancerListener("234.222.250.1", 57082, serial=None)
+    assert listener_no_filter.serial is None
 
 
 @pytest.mark.integration
