@@ -7,7 +7,7 @@ This guide will help you install and set up the DEFA Balancer custom integration
 - Home Assistant 2025.12.3 or newer
 - HACS (Home Assistant Community Store) installed
 - DEFA Balancer device on the same network as Home Assistant
-- Multicast traffic (group `234.222.250.1`) allowed on your network
+- Multicast UDP traffic to group `234.222.250.1` on port `57082` allowed on your network
 
 ## Installation
 

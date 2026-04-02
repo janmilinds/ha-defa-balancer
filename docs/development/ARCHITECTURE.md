@@ -37,6 +37,7 @@ custom_components/defa_balancer/
 │   ├── __init__.py          # Platform setup
 │   └── measurement.py       # Individual sensors (L1/L2/L3 current/power, total)
 ├── translations/            # Localization files (da, de, en, fi, nb, sv)
+├── utils/                   # Integration-wide utilities
 └── brand/                   # Brand assets (logos, etc.)
 ```
 
