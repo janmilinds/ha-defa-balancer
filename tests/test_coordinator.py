@@ -251,3 +251,34 @@ async def test_coordinator_clears_unreachable_issue_on_recovery(
         await coordinator._async_update_data()
 
     assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
+
+
+@pytest.mark.unit
+async def test_coordinator_clears_existing_issue_on_recovery_even_if_flag_not_set(
+    hass: HomeAssistant,
+    mock_packets: list[BalancerPacket],
+) -> None:
+    """Test stale existing issue is cleared on recovery after restart/reload."""
+    config_entry = _make_config_entry()
+    config_entry.add_to_hass(hass)
+    listener = MockBalancerListener(packets=mock_packets)
+    coordinator = _make_coordinator(hass, listener, config_entry)
+
+    issue_id = f"{ISSUE_ID_DEVICE_UNREACHABLE_PREFIX}_{config_entry.entry_id}"
+    ir.async_create_issue(
+        hass,
+        DOMAIN,
+        issue_id,
+        data={"entry_id": config_entry.entry_id},
+        is_fixable=True,
+        severity=ir.IssueSeverity.WARNING,
+        translation_key="device_unreachable",
+    )
+
+    # Simulate restart/reload case where issue exists but runtime flag is reset.
+    coordinator._offline_issue_created = False
+
+    with patch.object(listener, "get_last_packet_age", return_value=1.0):
+        await coordinator._async_update_data()
+
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None

@@ -23,10 +23,13 @@ async def async_get_config_entry_diagnostics(
     """Return diagnostics for a config entry."""
     coordinator = entry.runtime_data.coordinator
     issue_registry = ir.async_get(hass)
+    expected_issue_id = f"{ISSUE_ID_DEVICE_UNREACHABLE_PREFIX}_{entry.entry_id}"
     issues = [
         issue
         for (domain, issue_id), issue in issue_registry.issues.items()
-        if domain == DOMAIN and issue_id.startswith(ISSUE_ID_DEVICE_UNREACHABLE_PREFIX)
+        if domain == DOMAIN
+        and issue_id == expected_issue_id
+        and (not issue.data or issue.data.get("entry_id") == entry.entry_id)
     ]
 
     return {
