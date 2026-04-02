@@ -6,7 +6,7 @@ This document describes all configuration options for the DEFA Balancer custom i
 
 The DEFA Balancer uses automatic network discovery. When you add the integration:
 
-1. The integration scans your network for DEFA Balancer devices (multicast group `234.222.250.1:57082`)
+1. The integration scans your network for DEFA Balancer devices (multicast group `234.222.250.1` on UDP port `57082`)
 2. Devices are detected and listed automatically
 3. Select a device to begin monitoring
 
