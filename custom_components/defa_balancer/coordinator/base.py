@@ -64,7 +64,7 @@ class DEFABalancerDataUpdateCoordinator(DataUpdateCoordinator[dict[str, float | 
         return f"{ISSUE_ID_DEVICE_UNREACHABLE_PREFIX}_{self.config_entry.entry_id}"
 
     def _track_unavailable_state(self) -> None:
-        """Track continuous offline state and create a warning issue if needed."""
+        """Track continuous offline state and create an error issue if needed."""
         now = monotonic()
         if self._offline_since is None:
             self._offline_since = now
