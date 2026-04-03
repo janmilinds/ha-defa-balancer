@@ -39,6 +39,9 @@
     "error": {
       "cannot_connect": "Der Multicast-Socket konnte nicht geöffnet werden. Prüfe, dass Multicast-UDP-Datenverkehr im Netzwerk erlaubt ist.",
       "no_device_found": "Kein DEFA Balancer gefunden."
+    },
+    "abort": {
+      "already_configured": "DEFA Balancer ({serial}) ist bereits eingerichtet."
     }
   },
   "issues": {

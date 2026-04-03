@@ -39,6 +39,9 @@
     "error": {
       "cannot_connect": "Kunne ikke åbne multicast-socketen. Kontrollér, at multicast UDP-trafik er tilladt på netværket.",
       "no_device_found": "Ingen DEFA Balancer fundet."
+    },
+    "abort": {
+      "already_configured": "DEFA Balancer ({serial}) er allerede konfigureret."
     }
   },
   "issues": {

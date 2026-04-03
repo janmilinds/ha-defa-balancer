@@ -117,7 +117,7 @@ class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             serial: str = user_input[CONF_SERIAL]
             await self.async_set_unique_id(serial)
-            self._abort_if_unique_id_configured()
+            self._abort_if_unique_id_configured(description_placeholders={"serial": serial})
             return self.async_create_entry(
                 title=f"DEFA Balancer {serial}",
                 data={

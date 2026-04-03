@@ -39,6 +39,9 @@
     "error": {
       "cannot_connect": "Multicast-socketia ei voitu avata. Tarkista, että multicast UDP -liikenne on sallittu verkossa.",
       "no_device_found": "DEFA Balanceria ei löytynyt."
+    },
+    "abort": {
+      "already_configured": "DEFA Balancer ({serial}) on jo määritetty."
     }
   },
   "issues": {
