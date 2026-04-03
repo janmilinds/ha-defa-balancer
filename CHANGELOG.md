@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-beta.3] - 2026-04-04
+
+### Added
+
+- Comprehensive test coverage for coordinator, config flow, and entity behavior.
+- Raise an issue when the device is unreachable, with a checklist of troubleshooting steps in the issue description.
+
+### Changed
+
+- Diagnostics now redact serial numbers from the config entry title and redact `serial` fields in returned diagnostics data by default.
+- Documentation and README updated to reflect troubleshooting guidance and the new behavior.
+- Better serial parsing for UDP packets: extract the fixed serial length from the right-hand side.
+
+### Removed
+
+- Interactive repairs/fix flow stub; the "device unreachable" issue is non-fixable.
+- Unused utility modules and `entity_utils` helpers.
+
+
 ## [1.0.0-beta.2] - 2026-04-01
 
 ### Added
