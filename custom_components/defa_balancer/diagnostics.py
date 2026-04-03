@@ -24,22 +24,19 @@ async def async_get_config_entry_diagnostics(
     coordinator = entry.runtime_data.coordinator
     issue_registry = ir.async_get(hass)
     expected_issue_id = f"{ISSUE_ID_DEVICE_UNREACHABLE_PREFIX}_{entry.entry_id}"
-    issues = [
-        issue
-        for (domain, issue_id), issue in issue_registry.issues.items()
-        if domain == DOMAIN
-        and issue_id == expected_issue_id
-        and (not issue.data or issue.data.get("entry_id") == entry.entry_id)
-    ]
+    issue = issue_registry.async_get_issue(DOMAIN, expected_issue_id)
+    issues = [issue] if issue and (not issue.data or issue.data.get("entry_id") == entry.entry_id) else []
+
+    entry_payload = {
+        "entry_id": entry.entry_id,
+        "domain": entry.domain,
+        "title": entry.title,
+        "data": dict(entry.data),
+        "options": dict(entry.options),
+    }
 
     return {
-        "entry": {
-            "entry_id": entry.entry_id,
-            "domain": entry.domain,
-            "title": entry.title,
-            "data": async_redact_data(dict(entry.data), TO_REDACT),
-            "options": async_redact_data(dict(entry.options), TO_REDACT),
-        },
+        "entry": async_redact_data(entry_payload, TO_REDACT),
         "coordinator": {
             "last_update_success": coordinator.last_update_success,
             "last_exception": str(coordinator.last_exception) if coordinator.last_exception else None,
