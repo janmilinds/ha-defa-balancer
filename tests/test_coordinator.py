@@ -220,7 +220,7 @@ async def test_coordinator_clears_unreachable_issue_on_recovery(
     hass: HomeAssistant,
     mock_packets: list[BalancerPacket],
 ) -> None:
-    """Test warning issue is deleted after device recovers."""
+    """Test error issue is deleted after device recovers."""
     config_entry = _make_config_entry()
     config_entry.add_to_hass(hass)
     listener = MockBalancerListener(packets=mock_packets)

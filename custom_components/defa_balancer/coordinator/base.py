@@ -88,7 +88,7 @@ class DEFABalancerDataUpdateCoordinator(DataUpdateCoordinator[dict[str, float | 
         self._offline_issue_created = True
 
     def _clear_unavailable_state(self) -> None:
-        """Clear offline tracking and remove existing warning issue on recovery."""
+        """Clear offline tracking and remove existing error issue on recovery."""
         self._offline_since = None
         ir.async_delete_issue(
             self.hass,
