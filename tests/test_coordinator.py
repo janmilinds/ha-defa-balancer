@@ -210,6 +210,8 @@ async def test_coordinator_creates_unreachable_issue_after_threshold(
     issue = ir.async_get(hass).async_get_issue(DOMAIN, issue_id)
     assert issue is not None
     assert issue.translation_key == "device_unreachable"
+    assert issue.severity == ir.IssueSeverity.ERROR
+    assert issue.is_persistent is True
 
 
 @pytest.mark.unit
@@ -282,3 +284,30 @@ async def test_coordinator_clears_existing_issue_on_recovery_even_if_flag_not_se
         await coordinator._async_update_data()
 
     assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
+
+
+@pytest.mark.unit
+async def test_coordinator_initializes_issue_flag_from_registry(
+    hass: HomeAssistant,
+    mock_packets: list[BalancerPacket],
+) -> None:
+    """Test coordinator picks up pre-existing unreachable issue after restart."""
+    config_entry = _make_config_entry()
+    config_entry.add_to_hass(hass)
+    issue_id = f"{ISSUE_ID_DEVICE_UNREACHABLE_PREFIX}_{config_entry.entry_id}"
+
+    ir.async_create_issue(
+        hass,
+        DOMAIN,
+        issue_id,
+        data={"entry_id": config_entry.entry_id},
+        is_fixable=True,
+        is_persistent=True,
+        severity=ir.IssueSeverity.ERROR,
+        translation_key="device_unreachable",
+    )
+
+    listener = MockBalancerListener(packets=mock_packets)
+    coordinator = _make_coordinator(hass, listener, config_entry)
+
+    assert coordinator._offline_issue_created is True

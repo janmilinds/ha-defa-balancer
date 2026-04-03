@@ -56,7 +56,7 @@ class DEFABalancerDataUpdateCoordinator(DataUpdateCoordinator[dict[str, float | 
         )
         self._listener = listener
         self._offline_since: float | None = None
-        self._offline_issue_created = False
+        self._offline_issue_created = ir.async_get(hass).async_get_issue(DOMAIN, self._offline_issue_id) is not None
 
     @property
     def _offline_issue_id(self) -> str:
@@ -81,7 +81,8 @@ class DEFABalancerDataUpdateCoordinator(DataUpdateCoordinator[dict[str, float | 
             self._offline_issue_id,
             data={"entry_id": self.config_entry.entry_id},
             is_fixable=True,
-            severity=ir.IssueSeverity.WARNING,
+            is_persistent=True,
+            severity=ir.IssueSeverity.ERROR,
             translation_key="device_unreachable",
         )
         self._offline_issue_created = True
