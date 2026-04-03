@@ -17,6 +17,13 @@
           "user": "Søk etter enheter på nytt"
         }
       },
+      "already_configured": {
+        "title": "Fant ingen nye DEFA Balancer-enheter",
+        "description": "DEFA Balancer-enhetene som ble oppdaget er allerede konfigurert i Home Assistant.",
+        "menu_options": {
+          "user": "Søk etter enheter på nytt"
+        }
+      },
       "select": {
         "title": "DEFA Balancer funnet",
         "description": "Fant {count} DEFA Balancer-enhet(er) på nettverket. Velg enheten som skal settes opp.",

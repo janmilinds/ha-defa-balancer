@@ -17,6 +17,13 @@
           "user": "Etsi laitteita uudelleen"
         }
       },
+      "already_configured": {
+        "title": "Ei uusia DEFA Balancer -laitteita",
+        "description": "Löydetyt DEFA Balancer -laitteet on jo määritetty Home Assistantiin.",
+        "menu_options": {
+          "user": "Etsi laitteita uudelleen"
+        }
+      },
       "select": {
         "title": "DEFA Balancer löytyi",
         "description": "Verkosta löytyi {count} DEFA Balancer -laitetta. Valitse määritettävä laite.",

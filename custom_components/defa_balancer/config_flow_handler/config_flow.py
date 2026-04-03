@@ -112,7 +112,7 @@ class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         available = [s for s in self._detected_serials if s not in already_configured]
 
         if not available:
-            return await self.async_step_retry()
+            return await self.async_step_already_configured()
 
         if user_input is not None:
             serial: str = user_input[CONF_SERIAL]
@@ -146,6 +146,16 @@ class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Show retry screen with a custom scan-again button."""
         return self.async_show_menu(
             step_id="retry",
+            menu_options=["user"],
+        )
+
+    async def async_step_already_configured(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> config_entries.ConfigFlowResult:
+        """Show menu when discovered devices are already configured."""
+        return self.async_show_menu(
+            step_id="already_configured",
             menu_options=["user"],
         )
 

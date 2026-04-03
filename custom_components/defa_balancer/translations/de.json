@@ -17,6 +17,13 @@
           "user": "Erneut nach Geräten suchen"
         }
       },
+      "already_configured": {
+        "title": "Kein neuer DEFA Balancer gefunden",
+        "description": "Die gefundenen DEFA-Balancer-Geräte sind in Home Assistant bereits eingerichtet.",
+        "menu_options": {
+          "user": "Erneut nach Geräten suchen"
+        }
+      },
       "select": {
         "title": "DEFA Balancer gefunden",
         "description": "Im Netzwerk wurden {count} DEFA-Balancer-Gerät(e) gefunden. Wähle das Gerät aus, das du einrichten möchtest.",
