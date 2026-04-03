@@ -211,6 +211,7 @@ async def test_coordinator_creates_unreachable_issue_after_threshold(
     assert issue is not None
     assert issue.translation_key == "device_unreachable"
     assert issue.severity == ir.IssueSeverity.ERROR
+    assert issue.is_fixable is False
     assert issue.is_persistent is True
 
 
@@ -272,8 +273,8 @@ async def test_coordinator_clears_existing_issue_on_recovery_even_if_flag_not_se
         DOMAIN,
         issue_id,
         data={"entry_id": config_entry.entry_id},
-        is_fixable=True,
-        severity=ir.IssueSeverity.WARNING,
+        is_fixable=False,
+        severity=ir.IssueSeverity.ERROR,
         translation_key="device_unreachable",
     )
 
@@ -301,7 +302,7 @@ async def test_coordinator_initializes_issue_flag_from_registry(
         DOMAIN,
         issue_id,
         data={"entry_id": config_entry.entry_id},
-        is_fixable=True,
+        is_fixable=False,
         is_persistent=True,
         severity=ir.IssueSeverity.ERROR,
         translation_key="device_unreachable",

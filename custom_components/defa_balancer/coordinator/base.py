@@ -80,7 +80,7 @@ class DEFABalancerDataUpdateCoordinator(DataUpdateCoordinator[dict[str, float | 
             DOMAIN,
             self._offline_issue_id,
             data={"entry_id": self.config_entry.entry_id},
-            is_fixable=True,
+            is_fixable=False,
             is_persistent=True,
             severity=ir.IssueSeverity.ERROR,
             translation_key="device_unreachable",

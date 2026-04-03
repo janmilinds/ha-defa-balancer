@@ -12,7 +12,7 @@
       },
       "retry": {
         "title": "Kein DEFA Balancer gefunden",
-        "description": "Im Netzwerk wurde kein DEFA Balancer gefunden.\n\nPrüfe:\n- Das Gerät ist eingeschaltet\n- Das Gerät ist mit dem Netzwerk verbunden\n- Das Gerät ist im selben Subnetz/VLAN wie Home Assistant\n- Multicast-UDP-Datenverkehr wird nicht blockiert (prüfe die Router-Konfiguration)",
+        "description": "Im Netzwerk wurde kein DEFA Balancer gefunden.\n\nPrüfe:\n- Das Gerät ist eingeschaltet\n- Das Gerät ist mit dem Netzwerk verbunden\n- Das Gerät ist im selben Subnetz/VLAN wie Home Assistant\n- Multicast-UDP-Datenverkehr wird nicht blockiert (prüfe die Router-Konfiguration)\n- Starte das Gerät neu, indem du die Stromversorgung aus- und wieder einschaltest",
         "menu_options": {
           "user": "Erneut nach Geräten suchen"
         }
@@ -47,17 +47,7 @@
   "issues": {
     "device_unreachable": {
       "title": "Gerät nicht erreichbar",
-      "fix_flow": {
-        "step": {
-          "init": {
-            "title": "DEFA Balancer-Verbindung erneut versuchen",
-            "description": "Prüfe vor dem erneuten Versuch Folgendes:\n- Das Gerät ist eingeschaltet\n- Das Gerät ist mit dem Netzwerk verbunden\n- Das Gerät befindet sich im selben Subnetz/VLAN wie Home Assistant\n- Multicast-UDP-Datenverkehr wird nicht blockiert\n\nWähle Weiter, um das Laden der Integration erneut zu versuchen."
-          }
-        },
-        "error": {
-          "cannot_connect": "Die Verbindung ist weiterhin nicht verfügbar. Prüfe die Liste und versuche es erneut."
-        }
-      }
+      "description": "Der DEFA Balancer sendet keine Daten mehr an Home Assistant. Prüfe Folgendes:\n- Das Gerät ist eingeschaltet\n- Das Gerät ist mit dem Netzwerk verbunden\n- Das Gerät befindet sich im selben Subnetz/VLAN wie Home Assistant\n- Multicast-UDP-Datenverkehr wird nicht blockiert\n- Starte das Gerät neu, indem du die Stromversorgung aus- und wieder einschaltest\n\nDas Problem wird automatisch entfernt, sobald wieder Daten eintreffen."
     }
   },
   "entity": {
