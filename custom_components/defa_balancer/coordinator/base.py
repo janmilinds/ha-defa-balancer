@@ -89,17 +89,23 @@ class DEFABalancerDataUpdateCoordinator(DataUpdateCoordinator[dict[str, float | 
 
     def _clear_unavailable_state(self) -> None:
         """Clear offline tracking and remove existing error issue on recovery."""
-        if self._offline_since is None and not self._offline_issue_created:
+        issue_registry = ir.async_get(self.hass)
+        issue_exists = issue_registry.async_get_issue(DOMAIN, self._offline_issue_id) is not None
+
+        if self._offline_since is None and not self._offline_issue_created and not issue_exists:
             return
+
         self._offline_since = None
-        if not self._offline_issue_created:
-            return
-        ir.async_delete_issue(
-            self.hass,
-            DOMAIN,
-            self._offline_issue_id,
-        )
-        self._offline_issue_created = False
+
+        if issue_exists:
+            ir.async_delete_issue(
+                self.hass,
+                DOMAIN,
+                self._offline_issue_id,
+            )
+            self._offline_issue_created = False
+        else:
+            self._offline_issue_created = False
 
     async def _async_update_data(self) -> dict[str, float | int | str]:
         """Aggregate latest packet values for sensors."""
