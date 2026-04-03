@@ -8,11 +8,18 @@
         "title": "Find DEFA Balancer"
       },
       "scanning": {
-        "title": "DEFA Balancer"
+        "title": "Configure DEFA Balancer"
       },
       "retry": {
         "title": "No DEFA Balancer found",
-        "description": "No DEFA Balancer found on the network.\n\nVerify:\n- Device is powered on\n- Device is connected to the network\n- Device is on the same subnet/VLAN as Home Assistant\n- Multicast UDP traffic is not blocked (check your router configuration)",
+        "description": "No DEFA Balancer found on the network.\n\nVerify:\n- Device is powered on\n- Device is connected to the network\n- Device is on the same subnet/VLAN as Home Assistant\n- Multicast UDP traffic is not blocked (check your router configuration)\n- Restart the device by turning its power off and on",
+        "menu_options": {
+          "user": "Search devices again"
+        }
+      },
+      "already_configured": {
+        "title": "No new DEFA Balancer found",
+        "description": "Discovered DEFA Balancer devices are already configured in Home Assistant.",
         "menu_options": {
           "user": "Search devices again"
         }
@@ -34,7 +41,13 @@
       "no_device_found": "No DEFA Balancer found."
     },
     "abort": {
-      "already_configured": "This DEFA Balancer is already configured."
+      "already_configured": "DEFA Balancer ({serial}) is already configured."
+    }
+  },
+  "issues": {
+    "device_unreachable": {
+      "title": "Device unreachable",
+      "description": "The DEFA Balancer has stopped sending data to Home Assistant. Check the following:\n- Device is powered on\n- Device is connected to the network\n- Device is on the same subnet/VLAN as Home Assistant\n- Multicast UDP traffic is not blocked\n- Restart the device by turning its power off and on\n\nThe issue will clear automatically after data starts arriving again."
     }
   },
   "entity": {

@@ -11,6 +11,7 @@ from tests.test_constants import FAKE_FIRMWARE, FAKE_SERIAL
 def _build_packet(
     *,
     serial: str = FAKE_SERIAL,
+    serial_prefix: str = "L4",
     l1_ma: int = 1211,
     l2_ma: int = 801,
     l3_ma: int = 780,
@@ -18,7 +19,7 @@ def _build_packet(
 ) -> bytes:
     """Build a synthetic 54-byte DEFA-like packet with safe test data."""
     packet = bytearray(54)
-    packet[0:11] = f"L4{serial}".encode("ascii")[:11].ljust(11, b"\x00")
+    packet[0:11] = f"{serial_prefix}{serial}".encode("ascii")[:11].ljust(11, b"\x00")
     packet[19] = 0x41
     packet[20:22] = int(l1_ma).to_bytes(2, "little")
     packet[23:26] = int(l2_ma).to_bytes(3, "little")
@@ -73,6 +74,16 @@ def test_parse_packet_firmware_extraction() -> None:
 def test_parse_packet_serial_extraction() -> None:
     """Test serial number is correctly extracted."""
     packet_data = _build_packet(serial=FAKE_SERIAL)
+
+    packet = parse_packet(packet_data)
+    assert packet is not None
+    assert packet.serial == FAKE_SERIAL
+
+
+@pytest.mark.unit
+def test_parse_packet_serial_extraction_without_prefix() -> None:
+    """Test serial parsing also works when serial field has no prefix."""
+    packet_data = _build_packet(serial=FAKE_SERIAL, serial_prefix="")
 
     packet = parse_packet(packet_data)
     assert packet is not None

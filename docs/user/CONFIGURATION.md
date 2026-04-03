@@ -77,14 +77,16 @@ All values update every 10 seconds.
    - Log in to your router
    - Disable IGMP snooping (if available)
    - Ensure multicast is not blocked
-4. Try adding the integration again (scans for up to 15 seconds)
+4. Power-cycle the DEFA Balancer by turning it off and on again
+5. Try adding the integration again (scans for up to 15 seconds)
 
 ### Sensors show "unavailable"
 
 1. Check power to DEFA Balancer
 2. Verify network cable is connected
 3. Check if Balancer is on same subnet as Home Assistant
-4. Restart the integration:
+4. Power-cycle the DEFA Balancer by turning it off and on again
+5. Restart the integration:
    - Go to **Settings** → **Devices & Services**
    - Find "DEFA Balancer"
    - Click the three dots
@@ -96,7 +98,8 @@ If sensors show "unavailable" after 15 seconds without updates (or stay "unknown
 
 1. Check network connectivity
 2. Look for firewall or multicast blocking
-3. Restart Home Assistant to force reconnection
+3. Power-cycle the DEFA Balancer by turning it off and on again
+4. Restart Home Assistant to force reconnection
 
 ## Diagnostic Data
 

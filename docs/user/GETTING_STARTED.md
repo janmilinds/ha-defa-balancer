@@ -48,6 +48,7 @@ If your Balancer is found, you'll see it listed:
 - Click **Submit**
 
 If no device is found, check:
+
 - DEFA Balancer is powered on and connected to the network
 - Home Assistant is on the same subnet/VLAN
 - Your router/switch allows multicast traffic
@@ -72,7 +73,7 @@ After successful setup, the integration creates:
 ### Sensors
 
 | Entity | Unit | Description |
-|---|---|---|
+| --- | --- | --- |
 | L1 Current | A | Phase 1 current |
 | L2 Current | A | Phase 2 current |
 | L3 Current | A | Phase 3 current |
@@ -132,7 +133,8 @@ If the integration doesn't find your Balancer during the 15-second scan:
 1. Verify the DEFA Balancer is powered on and connected to the network
 2. Confirm Home Assistant is on the same subnet/VLAN
 3. Check if multicast traffic is allowed on your router
-4. Try again — the integration will re-scan
+4. Power-cycle the DEFA Balancer by turning it off and on again
+5. Try again — the integration will re-scan
 
 ### Sensors Show "Unavailable"
 
@@ -141,7 +143,8 @@ This means the Balancer stopped sending data for more than 15 seconds:
 1. Check power to the DEFA Balancer
 2. Verify the network cable is connected
 3. Ensure the Balancer is still on the same subnet
-4. Try reloading the integration from **Settings** → **Devices & Services**
+4. Power-cycle the DEFA Balancer by turning it off and on again
+5. Try reloading the integration from **Settings** → **Devices & Services**
 
 ### Debug Logging
 

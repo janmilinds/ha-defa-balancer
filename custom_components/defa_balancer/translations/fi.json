@@ -8,11 +8,18 @@
         "title": "Etsi DEFA Balancer"
       },
       "scanning": {
-        "title": "DEFA Balancer"
+        "title": "Määritä DEFA Balancer"
       },
       "retry": {
         "title": "DEFA Balanceria ei löytynyt",
-        "description": "DEFA Balanceria ei löytynyt verkosta.\n\nTarkista:\n- Laitteessa on virta päällä\n- Laite on kytketty verkkoon\n- Laite on samassa aliverkossa/VLANissa kuin Home Assistant\n- Multicast UDP -liikennettä ei estetä (tarkista reitittimen asetukset)",
+        "description": "DEFA Balanceria ei löytynyt verkosta.\n\nTarkista:\n- Laitteessa on virta päällä\n- Laite on kytketty verkkoon\n- Laite on samassa aliverkossa/VLANissa kuin Home Assistant\n- Multicast UDP -liikennettä ei estetä (tarkista reitittimen asetukset)\n- Käynnistä laite uudelleen katkaisemalla virta ja kytkemällä se takaisin päälle",
+        "menu_options": {
+          "user": "Etsi laitteita uudelleen"
+        }
+      },
+      "already_configured": {
+        "title": "Ei uusia DEFA Balancer -laitteita",
+        "description": "Löydetyt DEFA Balancer -laitteet on jo määritetty Home Assistantiin.",
         "menu_options": {
           "user": "Etsi laitteita uudelleen"
         }
@@ -34,7 +41,13 @@
       "no_device_found": "DEFA Balanceria ei löytynyt."
     },
     "abort": {
-      "already_configured": "Tämä DEFA Balancer on jo määritetty."
+      "already_configured": "DEFA Balancer ({serial}) on jo määritetty."
+    }
+  },
+  "issues": {
+    "device_unreachable": {
+      "title": "Laite ei ole tavoitettavissa",
+      "description": "DEFA Balancer on lakannut lähettämästä dataa Home Assistantiin. Tarkista seuraavat kohdat:\n- Laitteessa on virta päällä\n- Laite on kytketty verkkoon\n- Laite on samassa aliverkossa/VLANissa kuin Home Assistant\n- Multicast UDP -liikennettä ei estetä\n- Käynnistä laite uudelleen katkaisemalla virta ja kytkemällä se takaisin päälle\n\nOngelma poistuu automaattisesti, kun dataa alkaa taas saapua."
     }
   },
   "entity": {

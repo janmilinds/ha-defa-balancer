@@ -8,11 +8,18 @@
         "title": "Hitta DEFA Balancer"
       },
       "scanning": {
-        "title": "DEFA Balancer"
+        "title": "Konfigurera DEFA Balancer"
       },
       "retry": {
         "title": "Ingen DEFA Balancer hittades",
-        "description": "Ingen DEFA Balancer hittades i nätverket.\n\nKontrollera:\n- Att enheten är påslagen\n- Att enheten är ansluten till nätverket\n- Att enheten finns i samma subnät/VLAN som Home Assistant\n- Att multicast UDP-trafik inte blockeras (kontrollera routerns inställningar)",
+        "description": "Ingen DEFA Balancer hittades i nätverket.\n\nKontrollera:\n- Att enheten är påslagen\n- Att enheten är ansluten till nätverket\n- Att enheten finns i samma subnät/VLAN som Home Assistant\n- Att multicast UDP-trafik inte blockeras (kontrollera routerns inställningar)\n- Starta om enheten genom att stänga av och slå på strömmen",
+        "menu_options": {
+          "user": "Sök efter enheter igen"
+        }
+      },
+      "already_configured": {
+        "title": "Inga nya DEFA Balancer hittades",
+        "description": "DEFA Balancer-enheterna som hittades är redan konfigurerade i Home Assistant.",
         "menu_options": {
           "user": "Sök efter enheter igen"
         }
@@ -34,7 +41,13 @@
       "no_device_found": "Ingen DEFA Balancer hittades."
     },
     "abort": {
-      "already_configured": "Den här DEFA Balancer är redan konfigurerad."
+      "already_configured": "DEFA Balancer ({serial}) är redan konfigurerad."
+    }
+  },
+  "issues": {
+    "device_unreachable": {
+      "title": "Enheten kan inte nås",
+      "description": "DEFA Balancer har slutat skicka data till Home Assistant. Kontrollera följande:\n- Enheten är påslagen\n- Enheten är ansluten till nätverket\n- Enheten är i samma subnät/VLAN som Home Assistant\n- Multicast UDP-trafik blockeras inte\n- Starta om enheten genom att stänga av och slå på strömmen\n\nProblemet försvinner automatiskt när data börjar komma in igen."
     }
   },
   "entity": {

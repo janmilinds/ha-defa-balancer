@@ -19,12 +19,15 @@ from custom_components.defa_balancer.const import (
     DATA_L3,
     DATA_L3_POWER,
     DATA_TOTAL_POWER,
+    DEFAULT_OFFLINE_REPAIRS_THRESHOLD_SECONDS,
     DEFAULT_UPDATE_INTERVAL_SECONDS,
     DOMAIN,
+    ISSUE_ID_DEVICE_UNREACHABLE_PREFIX,
 )
 from custom_components.defa_balancer.coordinator import DEFABalancerDataUpdateCoordinator
 from custom_components.defa_balancer.coordinator.listeners import MockBalancerListener
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from tests.test_constants import FAKE_FIRMWARE, FAKE_SERIAL
 
@@ -175,3 +178,137 @@ async def test_coordinator_uses_phase_voltage_230(
     assert coordinator.data[DATA_L2_POWER] == pytest.approx(230.0, abs=0.1)
     assert coordinator.data[DATA_L3_POWER] == pytest.approx(230.0, abs=0.1)
     assert coordinator.data[DATA_TOTAL_POWER] == pytest.approx(690.0, abs=0.1)
+
+
+@pytest.mark.unit
+async def test_coordinator_creates_unreachable_issue_after_threshold(
+    hass: HomeAssistant,
+    mock_packets: list[BalancerPacket],
+) -> None:
+    """Test warning issue is created after continuous offline period."""
+    config_entry = _make_config_entry()
+    config_entry.add_to_hass(hass)
+    listener = MockBalancerListener(packets=mock_packets)
+    coordinator = _make_coordinator(hass, listener, config_entry)
+
+    issue_id = f"{ISSUE_ID_DEVICE_UNREACHABLE_PREFIX}_{config_entry.entry_id}"
+
+    with (
+        patch.object(listener, "get_last_packet_age", return_value=20.0),
+        patch("custom_components.defa_balancer.coordinator.base.monotonic", side_effect=[100.0, 161.0]),
+        pytest.raises(UpdateFailed),
+    ):
+        await coordinator._async_update_data()
+
+    with (
+        patch.object(listener, "get_last_packet_age", return_value=20.0),
+        patch("custom_components.defa_balancer.coordinator.base.monotonic", return_value=161.0),
+        pytest.raises(UpdateFailed),
+    ):
+        await coordinator._async_update_data()
+
+    issue = ir.async_get(hass).async_get_issue(DOMAIN, issue_id)
+    assert issue is not None
+    assert issue.translation_key == "device_unreachable"
+    assert issue.severity == ir.IssueSeverity.ERROR
+    assert issue.is_fixable is False
+    assert issue.is_persistent is True
+
+
+@pytest.mark.unit
+async def test_coordinator_clears_unreachable_issue_on_recovery(
+    hass: HomeAssistant,
+    mock_packets: list[BalancerPacket],
+) -> None:
+    """Test error issue is deleted after device recovers."""
+    config_entry = _make_config_entry()
+    config_entry.add_to_hass(hass)
+    listener = MockBalancerListener(packets=mock_packets)
+    coordinator = _make_coordinator(hass, listener, config_entry)
+
+    issue_id = f"{ISSUE_ID_DEVICE_UNREACHABLE_PREFIX}_{config_entry.entry_id}"
+
+    with (
+        patch.object(listener, "get_last_packet_age", return_value=20.0),
+        patch(
+            "custom_components.defa_balancer.coordinator.base.monotonic",
+            side_effect=[200.0, 200.0 + DEFAULT_OFFLINE_REPAIRS_THRESHOLD_SECONDS],
+        ),
+        pytest.raises(UpdateFailed),
+    ):
+        await coordinator._async_update_data()
+
+    with (
+        patch.object(listener, "get_last_packet_age", return_value=20.0),
+        patch(
+            "custom_components.defa_balancer.coordinator.base.monotonic",
+            return_value=200.0 + DEFAULT_OFFLINE_REPAIRS_THRESHOLD_SECONDS,
+        ),
+        pytest.raises(UpdateFailed),
+    ):
+        await coordinator._async_update_data()
+
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is not None
+
+    with patch.object(listener, "get_last_packet_age", return_value=1.0):
+        await coordinator._async_update_data()
+
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
+
+
+@pytest.mark.unit
+async def test_coordinator_clears_existing_issue_on_recovery_even_if_flag_not_set(
+    hass: HomeAssistant,
+    mock_packets: list[BalancerPacket],
+) -> None:
+    """Test stale existing issue is cleared on recovery after restart/reload."""
+    config_entry = _make_config_entry()
+    config_entry.add_to_hass(hass)
+    listener = MockBalancerListener(packets=mock_packets)
+    coordinator = _make_coordinator(hass, listener, config_entry)
+
+    issue_id = f"{ISSUE_ID_DEVICE_UNREACHABLE_PREFIX}_{config_entry.entry_id}"
+    ir.async_create_issue(
+        hass,
+        DOMAIN,
+        issue_id,
+        data={"entry_id": config_entry.entry_id},
+        is_fixable=False,
+        severity=ir.IssueSeverity.ERROR,
+        translation_key="device_unreachable",
+    )
+
+    # Simulate restart/reload case where issue exists but runtime flag is reset.
+    coordinator._offline_issue_created = False
+
+    with patch.object(listener, "get_last_packet_age", return_value=1.0):
+        await coordinator._async_update_data()
+
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
+
+
+@pytest.mark.unit
+async def test_coordinator_initializes_issue_flag_from_registry(
+    hass: HomeAssistant,
+    mock_packets: list[BalancerPacket],
+) -> None:
+    """Test coordinator picks up pre-existing unreachable issue after restart."""
+    config_entry = _make_config_entry()
+    config_entry.add_to_hass(hass)
+    issue_id = f"{ISSUE_ID_DEVICE_UNREACHABLE_PREFIX}_{config_entry.entry_id}"
+
+    ir.async_create_issue(
+        hass,
+        DOMAIN,
+        issue_id,
+        data={"entry_id": config_entry.entry_id},
+        is_fixable=False,
+        is_persistent=True,
+        severity=ir.IssueSeverity.ERROR,
+        translation_key="device_unreachable",
+    )
+
+    listener = MockBalancerListener(packets=mock_packets)
+    coordinator = _make_coordinator(hass, listener, config_entry)
+
+    assert coordinator._offline_issue_created is True
