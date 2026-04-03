@@ -167,7 +167,7 @@ async def test_config_flow_select_creates_entry_with_serial(
 
 
 @pytest.mark.unit
-async def test_config_flow_duplicate_serial_aborts(hass: HomeAssistant, enable_custom_integrations: None) -> None:
+async def test_config_flow_duplicate_serial_menu(hass: HomeAssistant, enable_custom_integrations: None) -> None:
     """Test that all found serials already configured shows dedicated menu."""
     mock_serial = FAKE_DUPLICATE_SERIAL
     existing_entry = MockConfigEntry(
