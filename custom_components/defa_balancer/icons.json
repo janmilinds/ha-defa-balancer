@@ -1,0 +1,28 @@
+{
+  "entity": {
+    "sensor": {
+      "l1_current": {
+        "default": "mdi:current-ac"
+      },
+      "l2_current": {
+        "default": "mdi:current-ac"
+      },
+      "l3_current": {
+        "default": "mdi:current-ac"
+      },
+      "l1_power": {
+        "default": "mdi:lightning-bolt"
+      },
+      "l2_power": {
+        "default": "mdi:lightning-bolt"
+      },
+      "l3_power": {
+        "default": "mdi:lightning-bolt"
+      },
+      "total_power": {
+        "default": "mdi:lightning-bolt-circle"
+      }
+    }
+  },
+  "services": {}
+}
