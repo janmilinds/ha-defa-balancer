@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Interactive repairs/fix flow stub; the "device unreachable" issue is non-fixable.
 - Unused utility modules and `entity_utils` helpers.
 
+---
+**Full Changelog**: https://github.com/janmilinds/ha-defa-balancer/compare/v1.0.0-beta.2...v1.0.0-beta.3
 
 ## [1.0.0-beta.2] - 2026-04-01
 
@@ -39,6 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - L1 phase current was read from wrong position in the data stream and showed values roughly 40 times too high.
 
+---
+**Full Changelog**: https://github.com/janmilinds/ha-defa-balancer/compare/v1.0.0-beta.1...v1.0.0-beta.2
+
 ## [1.0.0-beta.1] - 2026-03-31
 
 ### Added
@@ -49,3 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clearer setup flow with scanning progress and retry guidance when no device is found.
 - Device details shown in Home Assistant (manufacturer, model, firmware, and serial number).
 - Local mock balancer script for easy development and testing.
+
+---
+**Full Changelog**: https://github.com/janmilinds/ha-defa-balancer/commits/v1.0.0-beta.1
