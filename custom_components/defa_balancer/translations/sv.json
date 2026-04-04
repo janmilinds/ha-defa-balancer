@@ -34,6 +34,10 @@
       "connection_error": {
         "title": "Anslutningsfel",
         "description": "Home Assistant kunde inte starta multicast-lyssning.\n\nKontrollera nätverks- och värdinställningarna och försök igen."
+      },
+      "reconfigure": {
+        "title": "DEFA Balancer {serial}",
+        "description": "DEFA Balancer {serial} använder en fast multicast-adress och kräver ingen konfiguration."
       }
     },
     "error": {
@@ -41,7 +45,8 @@
       "no_device_found": "Ingen DEFA Balancer hittades."
     },
     "abort": {
-      "already_configured": "DEFA Balancer ({serial}) är redan konfigurerad."
+      "already_configured": "DEFA Balancer ({serial}) är redan konfigurerad.",
+      "reconfigure_successful": "DEFA Balancer omkonfigurerad."
     }
   },
   "issues": {

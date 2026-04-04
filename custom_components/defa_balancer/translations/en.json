@@ -34,6 +34,10 @@
       "connection_error": {
         "title": "Connection error",
         "description": "Home Assistant could not start multicast listening.\n\nCheck network and host settings, then try again."
+      },
+      "reconfigure": {
+        "title": "DEFA Balancer {serial}",
+        "description": "DEFA Balancer {serial} uses fixed multicast address and requires no configuration."
       }
     },
     "error": {
@@ -41,7 +45,8 @@
       "no_device_found": "No DEFA Balancer found."
     },
     "abort": {
-      "already_configured": "DEFA Balancer ({serial}) is already configured."
+      "already_configured": "DEFA Balancer ({serial}) is already configured.",
+      "reconfigure_successful": "DEFA Balancer reconfigured successfully."
     }
   },
   "issues": {
