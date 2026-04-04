@@ -73,6 +73,13 @@
       "total_power": {
         "name": "Total Power"
       }
+      ,
+      "firmware": {
+        "name": "Firmware"
+      },
+      "packet_count": {
+        "name": "Packet Count"
+      }
     }
   }
 }

@@ -73,6 +73,13 @@
       "total_power": {
         "name": "Gesamtleistung"
       }
+      ,
+      "firmware": {
+        "name": "Firmware"
+      },
+      "packet_count": {
+        "name": "Paketanzahl"
+      }
     }
   }
 }

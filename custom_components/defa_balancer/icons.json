@@ -1,6 +1,9 @@
 {
   "entity": {
     "sensor": {
+      "firmware": {
+        "default": "mdi:information-outline"
+      },
       "l1_current": {
         "default": "mdi:current-ac"
       },
@@ -18,6 +21,9 @@
       },
       "l3_power": {
         "default": "mdi:lightning-bolt"
+      },
+      "packet_count": {
+        "default": "mdi:counter"
       },
       "total_power": {
         "default": "mdi:lightning-bolt-circle"
