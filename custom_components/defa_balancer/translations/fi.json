@@ -62,6 +62,11 @@
       }
     }
   },
+  "exceptions": {
+    "device_unreachable": {
+      "message": "DEFA Balancerista ei ole saatu dataa – tarkista, että laite on päällä ja kytkettynä verkkoon."
+    }
+  },
   "issues": {
     "device_unreachable": {
       "title": "Laite ei ole tavoitettavissa",

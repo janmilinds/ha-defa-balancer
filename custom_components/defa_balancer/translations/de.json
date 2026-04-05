@@ -62,6 +62,11 @@
       }
     }
   },
+  "exceptions": {
+    "device_unreachable": {
+      "message": "Keine Daten vom DEFA Balancer empfangen – überprüfe, ob das Gerät eingeschaltet und mit dem Netzwerk verbunden ist."
+    }
+  },
   "issues": {
     "device_unreachable": {
       "title": "Gerät nicht erreichbar",

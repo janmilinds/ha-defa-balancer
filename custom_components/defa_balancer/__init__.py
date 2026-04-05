@@ -56,7 +56,7 @@ async def async_setup_entry(
 
     if not await listener.wait_for_packet(timeout=5.0):
         await listener.stop()
-        raise ConfigEntryNotReady("No data received from DEFA Balancer – check device is powered on and reachable")
+        raise ConfigEntryNotReady(translation_key="device_unreachable")
 
     coordinator = DEFABalancerDataUpdateCoordinator(
         hass=hass,
