@@ -49,6 +49,19 @@
       "reconfigure_successful": "DEFA Balancer omkonfigurerad."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Konfigurera DEFA Balancer-alternativ",
+        "data": {
+          "phase_voltage": "Fasspänning (V)"
+        },
+        "data_description": {
+          "phase_voltage": "Spänning per fas i volt (V), begränsad till 100–250. Standard är 230 V. Detta används för att beräkna effekt från strömavläsningar. Observera att den faktiska spänningen i verkligheten kan variera beroende på tid, plats och elnätets skick, så effektberäkningarna är endast ungefärliga."
+        }
+      }
+    }
+  },
   "issues": {
     "device_unreachable": {
       "title": "Enheten kan inte nås",

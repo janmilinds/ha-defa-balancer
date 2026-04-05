@@ -49,6 +49,19 @@
       "reconfigure_successful": "DEFA Balancer erfolgreich neu konfiguriert."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "DEFA Balancer-Optionen konfigurieren",
+        "data": {
+          "phase_voltage": "Fasspannung (V)"
+        },
+        "data_description": {
+          "phase_voltage": "Spannung pro Phase in Volt (V), begrenzt auf 100–250. Standard ist 230 V. Dies wird verwendet, um die Leistung aus Strommessungen zu berechnen. Beachte, dass die tatsächliche Spannung in der realen Welt je nach Zeit, Ort und Zustand des Stromnetzes variieren kann, sodass die Leistungsberechnungen nur ungefähr sind."
+        }
+      }
+    }
+  },
   "issues": {
     "device_unreachable": {
       "title": "Gerät nicht erreichbar",

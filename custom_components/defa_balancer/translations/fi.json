@@ -49,6 +49,19 @@
       "reconfigure_successful": "DEFA Balancer uudelleenkonfiguroitu onnistuneesti."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Määritä DEFA Balancer -asetukset",
+        "data": {
+          "phase_voltage": "Vaihejännite (V)"
+        },
+        "data_description": {
+          "phase_voltage": "Jännite kussakin vaiheessa volteissa (V), välillä 100–250. Oletusarvo on 230 V. Tätä käytetään tehon laskemiseen virta-arvoista. Huomaa, että todellinen jännite voi vaihdella ajan, sijainnin ja sähköverkon kunnon mukaan, joten teholukemat ovat vain likimääräisiä."
+        }
+      }
+    }
+  },
   "issues": {
     "device_unreachable": {
       "title": "Laite ei ole tavoitettavissa",

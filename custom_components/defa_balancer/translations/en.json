@@ -49,6 +49,19 @@
       "reconfigure_successful": "DEFA Balancer reconfigured successfully."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configure DEFA Balancer options",
+        "data": {
+          "phase_voltage": "Phase voltage (V)"
+        },
+        "data_description": {
+          "phase_voltage": "Voltage per phase in volts (V), constrained to 100–250. Default is 230V. This is used to calculate power from current readings. Note, that actual real-world voltage may vary depending on time, location and condition of the electrical grid, so power calculation are only approximate."
+        }
+      }
+    }
+  },
   "issues": {
     "device_unreachable": {
       "title": "Device unreachable",

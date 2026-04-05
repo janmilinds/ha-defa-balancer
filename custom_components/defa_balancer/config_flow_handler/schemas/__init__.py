@@ -2,4 +2,6 @@
 
 from __future__ import annotations
 
-__all__: list[str] = []
+from .options import get_options_schema
+
+__all__: list[str] = ["get_options_schema"]

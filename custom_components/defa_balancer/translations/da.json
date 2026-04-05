@@ -49,6 +49,19 @@
       "reconfigure_successful": "DEFA Balancer genkonfigureret."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Konfigurer DEFA Balancer-alternativer",
+        "data": {
+          "phase_voltage": "Fasspænding (V)"
+        },
+        "data_description": {
+          "phase_voltage": "Spænding per fase i volt (V), begrænset til 100–250. Standard er 230 V. Dette bruges til at beregne effekt fra strømaflæsninger. Bemærk, at den faktiske spænding i virkeligheden kan variere afhængigt af tid, sted og tilstanden af elnettet, så effektberegningerne er kun omtrentlige."
+        }
+      }
+    }
+  },
   "issues": {
     "device_unreachable": {
       "title": "Enheden kan ikke nås",

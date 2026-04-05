@@ -3,5 +3,12 @@
 from __future__ import annotations
 
 from .config_flow_handler import DEFABalancerConfigFlowHandler
+from .config_flow_handler.options_flow import DEFABalancerOptionsFlow
 
-__all__ = ["DEFABalancerConfigFlowHandler"]
+
+def async_get_options_flow(config_entry):
+    """Return options flow handler for a config entry."""
+    return DEFABalancerOptionsFlow(config_entry)
+
+
+__all__ = ["DEFABalancerConfigFlowHandler", "async_get_options_flow"]

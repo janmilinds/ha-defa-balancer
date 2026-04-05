@@ -7,6 +7,7 @@ from typing import Any
 
 import voluptuous as vol
 
+from custom_components.defa_balancer.config_flow_handler.options_flow import DEFABalancerOptionsFlow
 from custom_components.defa_balancer.const import (
     CONF_MULTICAST_GROUP,
     CONF_MULTICAST_PORT,
@@ -35,6 +36,20 @@ class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self._detected_serials: list[str] = []
         self._scan_task: asyncio.Task[list[str]] | None = None
         self._scan_error: str | None = None
+
+    @staticmethod
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> DEFABalancerOptionsFlow:
+        """
+        Get the options flow for this handler.
+
+        Returns:
+            The options flow instance for modifying integration options.
+
+        """
+
+        return DEFABalancerOptionsFlow(config_entry)
 
     def async_remove(self) -> None:
         """Clean up background task and listener when the flow is dismissed."""
