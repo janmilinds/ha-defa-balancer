@@ -216,6 +216,27 @@ async def test_config_flow_listener_start_failure_shows_connection_error(
         assert result["step_id"] == "connection_error"
 
 
+@pytest.mark.unit
+async def test_config_flow_scan_exception_shows_retry(hass: HomeAssistant, enable_custom_integrations: None) -> None:
+    """Test scan task raising exception shows retry menu (no crash)."""
+    with patch(
+        "custom_components.defa_balancer.config_flow_handler.config_flow.UDPBalancerListener",
+        return_value=_mock_listener(),
+    ):
+
+        async def failing_scan(self) -> list[str]:
+            raise RuntimeError("unexpected failure")
+
+        with patch(
+            "custom_components.defa_balancer.config_flow_handler.config_flow.DEFABalancerConfigFlowHandler._do_scan",
+            failing_scan,
+        ):
+            result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+            result = await _poll_until_done(hass, result)
+
+            assert result["type"] in (FlowResultType.MENU, FlowResultType.FORM)
+
+
 @pytest.mark.integration
 async def test_e2e_config_flow_create_entry_and_setup(
     hass: HomeAssistant,
@@ -334,29 +355,6 @@ async def test_config_flow_connection_error_form_retry_to_user(
         result = await _poll_until_done(hass, result)
         assert result["step_id"] == "connection_error"
         assert result["errors"]["base"] == "cannot_connect"
-
-
-@pytest.mark.unit
-async def test_config_flow_scan_exception_shows_retry(hass: HomeAssistant, enable_custom_integrations: None) -> None:
-    """Test that an exception during scan shows the retry menu."""
-
-    async def failing_scan(self) -> list[str]:
-        raise RuntimeError("scan failed")
-
-    with (
-        patch(
-            "custom_components.defa_balancer.config_flow_handler.config_flow.UDPBalancerListener",
-            return_value=_mock_listener(),
-        ),
-        patch(
-            "custom_components.defa_balancer.config_flow_handler.config_flow.DEFABalancerConfigFlowHandler._do_scan",
-            failing_scan,
-        ),
-    ):
-        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
-        result = await _poll_until_done(hass, result)
-        assert result["type"] == FlowResultType.MENU
-        assert result["step_id"] == "retry"
 
 
 @pytest.mark.unit

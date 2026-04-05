@@ -8,7 +8,11 @@ import socket
 import pytest
 
 from custom_components.defa_balancer.api import BalancerPacket, parse_packet
-from custom_components.defa_balancer.coordinator.listeners import MockBalancerListener, UDPBalancerListener
+from custom_components.defa_balancer.coordinator.listeners import (
+    MockBalancerListener,
+    UDPBalancerListener,
+    _DatagramProtocol,
+)
 from tests.test_constants import FAKE_FIRMWARE, FAKE_SERIAL
 
 
@@ -140,6 +144,60 @@ def test_listener_serial_attribute_is_set() -> None:
 
     listener_no_filter = UDPBalancerListener("234.222.250.1", 57082, serial=None)
     assert listener_no_filter.serial is None
+
+
+@pytest.mark.unit
+def test_mock_listener_get_last_packet_age_with_packets() -> None:
+    """MockBalancerListener.get_last_packet_age returns 0.0 when packets exist."""
+    listener = MockBalancerListener([_packet()])
+    assert listener.get_last_packet_age() == 0.0
+
+
+@pytest.mark.unit
+def test_mock_listener_get_last_packet_age_without_packets() -> None:
+    """MockBalancerListener.get_last_packet_age returns None when empty."""
+    listener = MockBalancerListener()
+    assert listener.get_last_packet_age() is None
+
+
+@pytest.mark.unit
+async def test_udp_listener_start_is_idempotent() -> None:
+    """Calling start() twice should not create a second transport."""
+    listener = UDPBalancerListener("234.222.250.1", 57082, serial=None)
+    # Simulate transport already set
+    listener._transport = object()  # type: ignore[assignment]
+    await listener.start()
+    # Should return early without replacing the transport
+    assert listener._transport is not None
+
+
+@pytest.mark.unit
+async def test_udp_listener_stop_is_idempotent() -> None:
+    """Calling stop() when no transport exists should be a no-op."""
+    listener = UDPBalancerListener("234.222.250.1", 57082, serial=None)
+    assert listener._transport is None
+    await listener.stop()
+    assert listener._transport is None
+
+
+@pytest.mark.unit
+def test_datagram_protocol_ignores_unparsable_data() -> None:
+    """Protocol should silently discard data that parse_packet returns None for."""
+    listener = UDPBalancerListener("234.222.250.1", 57082, serial=None)
+    protocol = _DatagramProtocol(listener)
+    protocol.datagram_received(b"garbage", ("127.0.0.1", 9999))
+    assert listener.get_latest() == []
+
+
+@pytest.mark.unit
+def test_datagram_protocol_filters_by_serial() -> None:
+    """Protocol should drop packets with non-matching serial."""
+    listener = UDPBalancerListener("234.222.250.1", 57082, serial="WANTED1234567")
+    protocol = _DatagramProtocol(listener)
+    # Build a valid packet with a different serial
+    packet_bytes = _build_packet_bytes(serial="OTHER1234")
+    protocol.datagram_received(packet_bytes, ("127.0.0.1", 9999))
+    assert listener.get_latest() == []
 
 
 @pytest.mark.integration
