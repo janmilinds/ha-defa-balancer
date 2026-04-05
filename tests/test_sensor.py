@@ -16,8 +16,12 @@ from custom_components.defa_balancer.const import (
     DATA_TOTAL_POWER,
 )
 from custom_components.defa_balancer.entity import DEFABalancerEntity
+from custom_components.defa_balancer.sensor.diagnostic import (
+    DIAGNOSTIC_ENTITY_DESCRIPTIONS,
+    DEFABalancerDiagnosticSensor,
+)
 from custom_components.defa_balancer.sensor.measurement import ENTITY_DESCRIPTIONS, DEFABalancerMeasurementSensor
-from homeassistant.const import UnitOfElectricCurrent, UnitOfPower
+from homeassistant.const import EntityCategory, UnitOfElectricCurrent, UnitOfPower
 from tests.test_constants import FAKE_FIRMWARE, FAKE_SERIAL
 
 
@@ -150,3 +154,59 @@ def test_entity_device_info_firmware_none_when_coordinator_data_none() -> None:
 
     assert entity.device_info is not None
     assert entity.device_info["sw_version"] is None
+
+
+# --- Diagnostic sensor tests ---
+
+
+@pytest.mark.unit
+def test_diagnostic_entity_descriptions_count() -> None:
+    """Test there are 2 diagnostic entity descriptions."""
+    assert len(DIAGNOSTIC_ENTITY_DESCRIPTIONS) == 2
+
+
+@pytest.mark.unit
+def test_diagnostic_entity_descriptions_are_diagnostic_category() -> None:
+    """Test diagnostic descriptions have EntityCategory.DIAGNOSTIC."""
+    for desc in DIAGNOSTIC_ENTITY_DESCRIPTIONS:
+        assert desc.entity_category == EntityCategory.DIAGNOSTIC
+
+
+@pytest.mark.unit
+def test_diagnostic_entity_descriptions_disabled_by_default() -> None:
+    """Test diagnostic descriptions are disabled by default."""
+    for desc in DIAGNOSTIC_ENTITY_DESCRIPTIONS:
+        assert desc.entity_registry_enabled_default is False
+
+
+@pytest.mark.unit
+def test_diagnostic_sensor_native_value_returns_firmware() -> None:
+    """Test diagnostic sensor returns firmware from coordinator data."""
+    coordinator = _mock_coordinator(data={"firmware": FAKE_FIRMWARE, "packet_count": 42})
+    entity = DEFABalancerDiagnosticSensor(coordinator, DIAGNOSTIC_ENTITY_DESCRIPTIONS[0])
+
+    assert entity.native_value == FAKE_FIRMWARE
+
+
+@pytest.mark.unit
+def test_diagnostic_sensor_native_value_returns_packet_count() -> None:
+    """Test diagnostic sensor returns packet_count from coordinator data."""
+    coordinator = _mock_coordinator(data={"firmware": FAKE_FIRMWARE, "packet_count": 42})
+    entity = DEFABalancerDiagnosticSensor(coordinator, DIAGNOSTIC_ENTITY_DESCRIPTIONS[1])
+
+    assert entity.native_value == 42
+
+
+@pytest.mark.unit
+def test_diagnostic_sensor_native_value_returns_none_when_no_data() -> None:
+    """Test diagnostic sensor returns None when coordinator has no data."""
+    coordinator = _mock_coordinator(data=None)
+    entity = DEFABalancerDiagnosticSensor(coordinator, DIAGNOSTIC_ENTITY_DESCRIPTIONS[0])
+
+    assert entity.native_value is None
+
+
+@pytest.mark.unit
+def test_diagnostic_sensor_is_subclass_of_base_entity() -> None:
+    """Test DEFABalancerDiagnosticSensor inherits from DEFABalancerEntity."""
+    assert issubclass(DEFABalancerDiagnosticSensor, DEFABalancerEntity)
