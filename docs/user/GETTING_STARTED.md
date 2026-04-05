@@ -128,6 +128,47 @@ automation:
           message: "Total power exceeded 10 kW: {{ trigger.to_state.state }} W"
 ```
 
+### More Use Cases
+
+**Monitor phase imbalance** — alert when one phase draws significantly more than others:
+
+```yaml
+automation:
+  - alias: "Phase imbalance warning"
+    trigger:
+      - platform: template
+        value_template: >
+          {{ (states('sensor.defa_balancer_xxxx_l1_current') | float -
+              states('sensor.defa_balancer_xxxx_l2_current') | float) | abs > 10 }}
+    action:
+      - service: notify.notify
+        data:
+          message: "Phase imbalance detected between L1 and L2"
+```
+
+**Track energy consumption** — create a Riemann sum helper to convert power (W) to energy (kWh) for the Energy dashboard:
+
+1. Go to **Settings** → **Devices & Services** → **Helpers**
+2. Click **+ Create Helper** → **Integration — Riemann sum integral**
+3. Select `sensor.defa_balancer_xxxx_total_power` as the input sensor
+4. Set method to **Left** and precision to 2
+5. The resulting kWh sensor can be added to the Energy dashboard
+
+**Track device availability** — log when the Balancer goes offline/online:
+
+```yaml
+automation:
+  - alias: "Balancer offline"
+    trigger:
+      - platform: state
+        entity_id: sensor.defa_balancer_xxxx_total_power
+        to: "unavailable"
+    action:
+      - service: notify.notify
+        data:
+          message: "DEFA Balancer went offline"
+```
+
 ## Troubleshooting
 
 ### No Device Found During Setup
