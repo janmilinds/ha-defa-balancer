@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from .config_flow_handler import DEFABalancerConfigFlowHandler
-from .config_flow_handler.options_flow import DEFABalancerOptionsFlow
+from .config_flow_handler import DEFABalancerConfigFlowHandler, DEFABalancerOptionsFlow
 
 
 def async_get_options_flow(config_entry):

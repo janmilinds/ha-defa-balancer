@@ -7,7 +7,6 @@ from typing import Any
 
 import voluptuous as vol
 
-from custom_components.defa_balancer.config_flow_handler.options_flow import DEFABalancerOptionsFlow
 from custom_components.defa_balancer.const import (
     CONF_MULTICAST_GROUP,
     CONF_MULTICAST_PORT,
@@ -23,6 +22,8 @@ from custom_components.defa_balancer.const import (
 from custom_components.defa_balancer.coordinator.listeners import UDPBalancerListener
 from homeassistant import config_entries
 from homeassistant.helpers.selector import SelectOptionDict, SelectSelector, SelectSelectorConfig
+
+from .options_flow import DEFABalancerOptionsFlow
 
 
 class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):

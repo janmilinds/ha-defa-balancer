@@ -20,8 +20,7 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
-from .coordinator import DEFABalancerDataUpdateCoordinator
-from .coordinator.listeners import UDPBalancerListener
+from .coordinator import DEFABalancerDataUpdateCoordinator, UDPBalancerListener
 from .data import DEFABalancerData
 
 if TYPE_CHECKING:
