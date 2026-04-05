@@ -190,7 +190,7 @@ class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def _do_scan(self) -> list[str]:
-        """Run the full two-phase scan: 5 s initial, then auto-extend 10 s.
+        """Run the full two-phase scan: 2s initial, then auto-extend 8s.
 
         Always waits the full window so multiple devices can be discovered.
         Returns list of unique serial numbers found, empty if none.

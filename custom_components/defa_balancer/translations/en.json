@@ -1,7 +1,7 @@
 {
   "config": {
     "progress": {
-      "scanning": "Scanning devices from network, this may take 5 to 15 seconds"
+      "scanning": "Scanning devices from network, this may take 2 to 10 seconds"
     },
     "step": {
       "user": {
