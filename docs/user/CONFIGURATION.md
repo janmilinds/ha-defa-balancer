@@ -111,3 +111,25 @@ The integration provides diagnostic data for troubleshooting:
 4. Click **Download Diagnostics**
 
 Diagnostic data includes current sensor states and connection information. Review before sharing publicly.
+
+## Removing the Integration
+
+### Remove a Single Device
+
+1. Go to **Settings** → **Devices & Services**
+2. Find "DEFA Balancer"
+3. Click the three dots next to the entry
+4. Select **Delete**
+5. Confirm removal
+
+This removes the config entry and all associated entities. Automations referencing these entities will need to be updated.
+
+### Uninstall the Integration Completely
+
+1. Remove all DEFA Balancer config entries (see above)
+2. If installed via HACS:
+   - Open HACS → **Integrations**
+   - Find "DEFA Balancer" → click the three dots → **Remove**
+3. If installed manually:
+   - Delete the `custom_components/defa_balancer/` directory
+4. Restart Home Assistant
