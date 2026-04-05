@@ -42,7 +42,7 @@ After installation, the integration automatically discovers your DEFA Balancer:
 1. Go to **Settings** → **Devices & Services**
 2. Click **+ Add Integration**
 3. Search for "DEFA Balancer"
-4. The integration will scan your network for up to 15 seconds
+4. The integration will scan your network for up to 10 seconds
 
 ### Step 1: Device Selection
 
@@ -132,7 +132,7 @@ automation:
 
 ### No Device Found During Setup
 
-If the integration doesn't find your Balancer during the 15-second scan:
+If the integration doesn't find your Balancer during the 10-second scan:
 
 1. Verify the DEFA Balancer is powered on and connected to the network
 2. Confirm Home Assistant is on the same subnet/VLAN

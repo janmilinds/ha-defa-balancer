@@ -78,7 +78,7 @@ All values update every 10 seconds.
    - Disable IGMP snooping (if available)
    - Ensure multicast is not blocked
 4. Power-cycle the DEFA Balancer by turning it off and on again
-5. Try adding the integration again (scans for up to 15 seconds)
+5. Try adding the integration again (scans for up to 10 seconds)
 
 ### Sensors show "unavailable"
 
