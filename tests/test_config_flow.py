@@ -306,3 +306,79 @@ async def test_e2e_config_flow_connection_error_then_retry_success(
 
         assert entry.state is ConfigEntryState.LOADED
         successful_scan_listener.stop.assert_awaited_once()
+
+
+@pytest.mark.unit
+async def test_config_flow_connection_error_form_retry_to_user(
+    hass: HomeAssistant, enable_custom_integrations: None
+) -> None:
+    """Test that submitting the connection_error form restarts scanning."""
+    failing_listener = _mock_listener()
+    failing_listener.start = AsyncMock(side_effect=OSError)
+    success_listener = _mock_listener()
+
+    async def one_device_scan(self) -> list[str]:
+        return [FAKE_SERIAL]
+
+    with (
+        patch(
+            "custom_components.defa_balancer.config_flow_handler.config_flow.UDPBalancerListener",
+            side_effect=[failing_listener, success_listener],
+        ),
+        patch(
+            "custom_components.defa_balancer.config_flow_handler.config_flow.DEFABalancerConfigFlowHandler._do_scan",
+            one_device_scan,
+        ),
+    ):
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        result = await _poll_until_done(hass, result)
+        assert result["step_id"] == "connection_error"
+        assert result["errors"]["base"] == "cannot_connect"
+
+
+@pytest.mark.unit
+async def test_config_flow_scan_exception_shows_retry(hass: HomeAssistant, enable_custom_integrations: None) -> None:
+    """Test that an exception during scan shows the retry menu."""
+
+    async def failing_scan(self) -> list[str]:
+        raise RuntimeError("scan failed")
+
+    with (
+        patch(
+            "custom_components.defa_balancer.config_flow_handler.config_flow.UDPBalancerListener",
+            return_value=_mock_listener(),
+        ),
+        patch(
+            "custom_components.defa_balancer.config_flow_handler.config_flow.DEFABalancerConfigFlowHandler._do_scan",
+            failing_scan,
+        ),
+    ):
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        result = await _poll_until_done(hass, result)
+        assert result["type"] == FlowResultType.MENU
+        assert result["step_id"] == "retry"
+
+
+@pytest.mark.unit
+async def test_config_flow_already_configured_menu(hass: HomeAssistant, enable_custom_integrations: None) -> None:
+    """Test dedicated already_configured menu when all devices exist."""
+    existing = MockConfigEntry(domain=DOMAIN, data={CONF_SERIAL: FAKE_SERIAL}, unique_id=FAKE_SERIAL)
+    existing.add_to_hass(hass)
+
+    async def one_device_scan(self) -> list[str]:
+        return [FAKE_SERIAL]
+
+    with (
+        patch(
+            "custom_components.defa_balancer.config_flow_handler.config_flow.UDPBalancerListener",
+            return_value=_mock_listener(),
+        ),
+        patch(
+            "custom_components.defa_balancer.config_flow_handler.config_flow.DEFABalancerConfigFlowHandler._do_scan",
+            one_device_scan,
+        ),
+    ):
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        result = await _poll_until_done(hass, result)
+        assert result["type"] == FlowResultType.MENU
+        assert result["step_id"] == "already_configured"
