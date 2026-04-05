@@ -19,7 +19,27 @@ class BalancerPacket:
 
 
 def parse_packet(data: bytes) -> BalancerPacket | None:
-    """Parse a raw UDP packet into a BalancerPacket."""
+    """
+    Parse a raw UDP packet into a BalancerPacket.
+
+    Data packet structure of notable fields:
+
+    | Offset | Length | Type      | Description                                      |
+    |--------|--------|-----------|--------------------------------------------------|
+    | 0-10   | 11     | ASCII     | Serial number (right-aligned, padded with nulls) |
+    | 20-21  | 2      | uint16 LE | L1 current in mA                                 |
+    | 23-25  | 3      | uint24 LE | L2 current in mA                                 |
+    | 26-28  | 3      | uint24 LE | L3 current in mA                                 |
+    | 33-37  | 5      | ASCII     | Firmware version (padded with nulls)             |
+
+    Args:
+        data: The raw bytes received from the DEFA Balancer device.
+
+    Returns:
+        A BalancerPacket instance if parsing is successful, None otherwise.
+
+    """
+
     if len(data) != PACKET_LENGTH:
         return None
 
