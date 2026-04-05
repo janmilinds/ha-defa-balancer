@@ -20,9 +20,25 @@ For discovery and operation:
 - Multicast traffic to `234.222.250.1:57082` must be allowed (check router/firewall)
 - Both devices should be on IPv4 networks (IPv6 multicast not currently supported)
 
-## Update Interval
+## How Data Is Updated
 
-Data updates are processed by Home Assistant every 10 seconds by default from the Balancer's multicast broadcasts. The Balancer's multicast behavior is determined by the device firmware, while the integration's default 10-second update interval is set in its configuration (not currently adjustable via the Home Assistant UI).
+The DEFA Balancer uses a **push architecture** — data flows from device to Home Assistant without polling:
+
+1. **Device broadcasts:** The Balancer continuously sends UDP multicast packets containing current measurements and firmware version
+2. **Listener captures:** The integration's UDP listener receives packets and stores them in a ring buffer (last 25 packets)
+3. **Coordinator reads:** Every 10 seconds, the DataUpdateCoordinator reads the latest packet from the buffer and updates entity states
+4. **Unavailability detection:** If no fresh packet arrives within 15 seconds, sensors are marked "unavailable"
+5. **Offline repair issue:** If the device remains unreachable for 60 seconds, a persistent repair issue is created to notify the user
+
+### Power Calculation
+
+Power values (W) are calculated from current (A) × phase voltage. The default phase voltage is 230V and can be adjusted per device in **Settings** → **Devices & Services** → DEFA Balancer → **Configure** (options flow).
+
+### Options
+
+| Option | Default | Range | Description |
+| --- | --- | --- | --- |
+| Phase voltage | 230 V | 100–250 V | Voltage used for power calculation |
 
 ## Entity Customization
 
