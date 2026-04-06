@@ -312,3 +312,43 @@ async def test_coordinator_initializes_issue_flag_from_registry(
     coordinator = _make_coordinator(hass, listener, config_entry)
 
     assert coordinator._offline_issue_created is True
+
+
+@pytest.mark.unit
+async def test_coordinator_skips_duplicate_issue_creation(
+    hass: HomeAssistant,
+    mock_packets: list[BalancerPacket],
+) -> None:
+    """Test _track_unavailable_state returns early when issue already created."""
+    config_entry = _make_config_entry()
+    config_entry.add_to_hass(hass)
+    listener = MockBalancerListener(packets=mock_packets)
+    coordinator = _make_coordinator(hass, listener, config_entry)
+
+    # Simulate issue already created
+    coordinator._offline_issue_created = True
+    coordinator._offline_since = 0.0  # already tracking
+
+    # Calling _track_unavailable_state should return early (line 75)
+    coordinator._track_unavailable_state()
+
+    # Still marked as created
+    assert coordinator._offline_issue_created is True
+
+
+@pytest.mark.unit
+async def test_coordinator_stale_packet_age_none_raises(
+    hass: HomeAssistant,
+    mock_packets: list[BalancerPacket],
+) -> None:
+    """Test UpdateFailed raised when packets exist but packet age is None."""
+    config_entry = _make_config_entry()
+    config_entry.add_to_hass(hass)
+    listener = MockBalancerListener(packets=mock_packets)
+    coordinator = _make_coordinator(hass, listener, config_entry)
+
+    with (
+        patch.object(listener, "get_last_packet_age", return_value=None),
+        pytest.raises(UpdateFailed, match="No data received"),
+    ):
+        await coordinator._async_update_data()

@@ -8,6 +8,7 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.defa_balancer.api import BalancerPacket
+from custom_components.defa_balancer.config_flow_handler.config_flow import DEFABalancerConfigFlowHandler
 from custom_components.defa_balancer.const import CONF_SERIAL, DOMAIN
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
@@ -380,3 +381,27 @@ async def test_config_flow_already_configured_menu(hass: HomeAssistant, enable_c
         result = await _poll_until_done(hass, result)
         assert result["type"] == FlowResultType.MENU
         assert result["step_id"] == "already_configured"
+
+
+@pytest.mark.unit
+async def test_config_flow_async_remove_cancels_task_and_stops_listener(
+    hass: HomeAssistant, enable_custom_integrations: None
+) -> None:
+    """Test async_remove cleans up scan task and listener."""
+    flow = DEFABalancerConfigFlowHandler()
+    flow.hass = hass
+
+    # Simulate an in-progress scan task
+    mock_task = MagicMock()
+    mock_task.done.return_value = False
+    flow._scan_task = mock_task
+
+    # Simulate an active listener
+    listener = _mock_listener()
+    flow._listener = listener
+
+    flow.async_remove()
+
+    mock_task.cancel.assert_called_once()
+    assert flow._scan_task is None
+    assert flow._listener is None
