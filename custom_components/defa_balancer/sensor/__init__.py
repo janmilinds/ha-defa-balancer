@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from custom_components.defa_balancer.const import PARALLEL_UPDATES as PARALLEL_UPDATES
 
+from .diagnostic import DIAGNOSTIC_ENTITY_DESCRIPTIONS, DEFABalancerDiagnosticSensor
 from .measurement import ENTITY_DESCRIPTIONS, DEFABalancerMeasurementSensor
 
 if TYPE_CHECKING:
@@ -20,10 +21,14 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up DEFA Balancer sensors."""
-    async_add_entities(
-        DEFABalancerMeasurementSensor(
-            coordinator=entry.runtime_data.coordinator,
-            entity_description=entity_description,
-        )
-        for entity_description in ENTITY_DESCRIPTIONS
+    coordinator = entry.runtime_data.coordinator
+
+    entities: list[DEFABalancerMeasurementSensor | DEFABalancerDiagnosticSensor] = [
+        DEFABalancerMeasurementSensor(coordinator=coordinator, entity_description=desc) for desc in ENTITY_DESCRIPTIONS
+    ]
+    entities.extend(
+        DEFABalancerDiagnosticSensor(coordinator=coordinator, entity_description=desc)
+        for desc in DIAGNOSTIC_ENTITY_DESCRIPTIONS
     )
+
+    async_add_entities(entities)

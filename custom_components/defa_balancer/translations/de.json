@@ -1,7 +1,7 @@
 {
   "config": {
     "progress": {
-      "scanning": "Suche nach Geräten im Netzwerk. Das kann 5–15 Sekunden dauern."
+      "scanning": "Suche nach Geräten im Netzwerk. Das kann 2–10 Sekunden dauern."
     },
     "step": {
       "user": {
@@ -34,6 +34,10 @@
       "connection_error": {
         "title": "Verbindungsfehler",
         "description": "Home Assistant konnte das Multicast-Listening nicht starten.\n\nPrüfe die Netzwerk- und Host-Einstellungen und versuche es erneut."
+      },
+      "reconfigure": {
+        "title": "DEFA Balancer {serial}",
+        "description": "DEFA Balancer {serial} verwendet eine feste Multicast-Adresse und erfordert keine Konfiguration."
       }
     },
     "error": {
@@ -41,7 +45,26 @@
       "no_device_found": "Kein DEFA Balancer gefunden."
     },
     "abort": {
-      "already_configured": "DEFA Balancer ({serial}) ist bereits eingerichtet."
+      "already_configured": "DEFA Balancer ({serial}) ist bereits eingerichtet.",
+      "reconfigure_successful": "DEFA Balancer erfolgreich neu konfiguriert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "DEFA Balancer-Optionen konfigurieren",
+        "data": {
+          "phase_voltage": "Fasspannung (V)"
+        },
+        "data_description": {
+          "phase_voltage": "Spannung pro Phase in Volt (V), begrenzt auf 100–250. Standard ist 230 V. Dies wird verwendet, um die Leistung aus Strommessungen zu berechnen. Beachte, dass die tatsächliche Spannung in der realen Welt je nach Zeit, Ort und Zustand des Stromnetzes variieren kann, sodass die Leistungsberechnungen nur ungefähr sind."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "device_unreachable": {
+      "message": "Keine Daten vom DEFA Balancer empfangen – überprüfe, ob das Gerät eingeschaltet und mit dem Netzwerk verbunden ist."
     }
   },
   "issues": {
@@ -72,6 +95,12 @@
       },
       "total_power": {
         "name": "Gesamtleistung"
+      },
+      "firmware": {
+        "name": "Firmware"
+      },
+      "packet_count": {
+        "name": "Paketanzahl"
       }
     }
   }

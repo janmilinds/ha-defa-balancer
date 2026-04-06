@@ -1,7 +1,7 @@
 {
   "config": {
     "progress": {
-      "scanning": "Søker etter enheter på nettverket, dette kan ta 5 til 15 sekunder"
+      "scanning": "Søker etter enheter på nettverket, dette kan ta 2 til 10 sekunder"
     },
     "step": {
       "user": {
@@ -34,6 +34,10 @@
       "connection_error": {
         "title": "Tilkoblingsfeil",
         "description": "Home Assistant kunne ikke starte multicast-lytting.\n\nKontroller nettverks- og vertsinnstillingene, og prøv igjen."
+      },
+      "reconfigure": {
+        "title": "DEFA Balancer {serial}",
+        "description": "DEFA Balancer {serial} bruker en fast multicast-adresse og krever ingen konfigurasjon."
       }
     },
     "error": {
@@ -41,7 +45,26 @@
       "no_device_found": "Fant ingen DEFA Balancer."
     },
     "abort": {
-      "already_configured": "DEFA Balancer ({serial}) er allerede konfigurert."
+      "already_configured": "DEFA Balancer ({serial}) er allerede konfigurert.",
+      "reconfigure_successful": "DEFA Balancer rekonfigurert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Konfigurer DEFA Balancer-alternativer",
+        "data": {
+          "phase_voltage": "Fasspenning (V)"
+        },
+        "data_description": {
+          "phase_voltage": "Spenning per fase i volt (V), begrenset til 100–250. Standard er 230 V. Dette brukes til å beregne effekt fra strømmålinger. Merk at den faktiske spenningen i virkeligheten kan variere avhengig av tid, sted og tilstanden til strømnettet, så effektberegningene er kun omtrentlige."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "device_unreachable": {
+      "message": "Ingen data mottatt fra DEFA Balancer – kontroller at enheten er påslått og koblet til nettverket."
     }
   },
   "issues": {
@@ -72,6 +95,12 @@
       },
       "total_power": {
         "name": "Total effekt"
+      },
+      "firmware": {
+        "name": "Fastvare"
+      },
+      "packet_count": {
+        "name": "Pakkeantall"
       }
     }
   }

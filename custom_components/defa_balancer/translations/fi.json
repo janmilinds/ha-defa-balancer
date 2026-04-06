@@ -1,7 +1,7 @@
 {
   "config": {
     "progress": {
-      "scanning": "Etsitään laitteita verkosta, tämä voi kestää 5–15 sekuntia"
+      "scanning": "Etsitään laitteita verkosta, tämä voi kestää 2–10 sekuntia"
     },
     "step": {
       "user": {
@@ -34,6 +34,10 @@
       "connection_error": {
         "title": "Yhteysvirhe",
         "description": "Home Assistant ei voinut käynnistää multicast-kuuntelua.\n\nTarkista verkko- ja järjestelmäasetukset ja yritä uudelleen."
+      },
+      "reconfigure": {
+        "title": "DEFA Balancer {serial}",
+        "description": "DEFA Balancer {serial} käyttää kiinteää multicast-osoitetta eikä vaadi konfigurointia."
       }
     },
     "error": {
@@ -41,7 +45,26 @@
       "no_device_found": "DEFA Balanceria ei löytynyt."
     },
     "abort": {
-      "already_configured": "DEFA Balancer ({serial}) on jo määritetty."
+      "already_configured": "DEFA Balancer ({serial}) on jo määritetty.",
+      "reconfigure_successful": "DEFA Balancer uudelleenkonfiguroitu onnistuneesti."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Määritä DEFA Balancer -asetukset",
+        "data": {
+          "phase_voltage": "Vaihejännite (V)"
+        },
+        "data_description": {
+          "phase_voltage": "Jännite kussakin vaiheessa volteissa (V), välillä 100–250. Oletusarvo on 230 V. Tätä käytetään tehon laskemiseen virta-arvoista. Huomaa, että todellinen jännite voi vaihdella ajan, sijainnin ja sähköverkon kunnon mukaan, joten teholukemat ovat vain likimääräisiä."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "device_unreachable": {
+      "message": "DEFA Balancerista ei ole saatu dataa – tarkista, että laite on päällä ja kytkettynä verkkoon."
     }
   },
   "issues": {
@@ -72,6 +95,12 @@
       },
       "total_power": {
         "name": "Kokonaisteho"
+      },
+      "firmware": {
+        "name": "Laiteohjelmisto"
+      },
+      "packet_count": {
+        "name": "Pakettien määrä"
       }
     }
   }

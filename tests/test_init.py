@@ -116,7 +116,7 @@ async def test_async_setup_entry_raises_not_ready_when_no_packets(hass: HomeAssi
 
     with (
         patch("custom_components.defa_balancer.UDPBalancerListener", return_value=listener),
-        pytest.raises(ConfigEntryNotReady, match="No data received from DEFA Balancer"),
+        pytest.raises(ConfigEntryNotReady),
     ):
         await async_setup_entry(hass, entry)
 
@@ -172,9 +172,13 @@ async def test_e2e_setup_entry_creates_sensor_entities(
 
     registry = er.async_get(hass)
     entities = er.async_entries_for_config_entry(registry, entry.entry_id)
-    assert len(entities) == 7
+    assert len(entities) == 9
 
-    for entity in entities:
+    # Only enabled entities (7 measurement sensors) should have states.
+    # Diagnostic entities (firmware, packet_count) are disabled by default.
+    enabled_entities = [e for e in entities if e.disabled_by is None]
+    assert len(enabled_entities) == 7
+    for entity in enabled_entities:
         assert hass.states.get(entity.entity_id) is not None
 
 

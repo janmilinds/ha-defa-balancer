@@ -9,6 +9,10 @@ This guide will help you install and set up the DEFA Balancer custom integration
 - DEFA Balancer device on the same network as Home Assistant
 - Multicast UDP traffic to group `234.222.250.1` on port `57082` allowed on your network
 
+## Supported Devices
+
+The integration is designed to work with DEFA Balancer devices that broadcast their data via multicast. It has been tested with P/N: 715004. It should also be compatible with DEFA Balancer S (P/N: 715008), but this has not been explicitly tested.
+
 ## Installation
 
 ### Via HACS (Recommended)
@@ -38,7 +42,7 @@ After installation, the integration automatically discovers your DEFA Balancer:
 1. Go to **Settings** → **Devices & Services**
 2. Click **+ Add Integration**
 3. Search for "DEFA Balancer"
-4. The integration will scan your network for up to 15 seconds
+4. The integration will scan your network for up to 10 seconds
 
 ### Step 1: Device Selection
 
@@ -124,11 +128,52 @@ automation:
           message: "Total power exceeded 10 kW: {{ trigger.to_state.state }} W"
 ```
 
+### More Use Cases
+
+**Monitor phase imbalance** — alert when one phase draws significantly more than others:
+
+```yaml
+automation:
+  - alias: "Phase imbalance warning"
+    trigger:
+      - platform: template
+        value_template: >
+          {{ (states('sensor.defa_balancer_xxxx_l1_current') | float -
+              states('sensor.defa_balancer_xxxx_l2_current') | float) | abs > 10 }}
+    action:
+      - service: notify.notify
+        data:
+          message: "Phase imbalance detected between L1 and L2"
+```
+
+**Track energy consumption** — create a Riemann sum helper to convert power (W) to energy (kWh) for the Energy dashboard:
+
+1. Go to **Settings** → **Devices & Services** → **Helpers**
+2. Click **+ Create Helper** → **Integration — Riemann sum integral**
+3. Select `sensor.defa_balancer_xxxx_total_power` as the input sensor
+4. Set method to **Left** and precision to 2
+5. The resulting kWh sensor can be added to the Energy dashboard
+
+**Track device availability** — log when the Balancer goes offline/online:
+
+```yaml
+automation:
+  - alias: "Balancer offline"
+    trigger:
+      - platform: state
+        entity_id: sensor.defa_balancer_xxxx_total_power
+        to: "unavailable"
+    action:
+      - service: notify.notify
+        data:
+          message: "DEFA Balancer went offline"
+```
+
 ## Troubleshooting
 
 ### No Device Found During Setup
 
-If the integration doesn't find your Balancer during the 15-second scan:
+If the integration doesn't find your Balancer during the 10-second scan:
 
 1. Verify the DEFA Balancer is powered on and connected to the network
 2. Confirm Home Assistant is on the same subnet/VLAN

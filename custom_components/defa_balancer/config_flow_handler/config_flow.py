@@ -23,6 +23,8 @@ from custom_components.defa_balancer.coordinator.listeners import UDPBalancerLis
 from homeassistant import config_entries
 from homeassistant.helpers.selector import SelectOptionDict, SelectSelector, SelectSelectorConfig
 
+from .options_flow import DEFABalancerOptionsFlow
+
 
 class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle DEFA Balancer config flow."""
@@ -35,6 +37,13 @@ class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self._detected_serials: list[str] = []
         self._scan_task: asyncio.Task[list[str]] | None = None
         self._scan_error: str | None = None
+
+    @staticmethod
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> DEFABalancerOptionsFlow:
+        """Get the options flow for this handler."""
+        return DEFABalancerOptionsFlow()
 
     def async_remove(self) -> None:
         """Clean up background task and listener when the flow is dismissed."""
@@ -175,7 +184,7 @@ class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def _do_scan(self) -> list[str]:
-        """Run the full two-phase scan: 5 s initial, then auto-extend 10 s.
+        """Run the full two-phase scan: 2s initial, then auto-extend 8s.
 
         Always waits the full window so multiple devices can be discovered.
         Returns list of unique serial numbers found, empty if none.
@@ -196,6 +205,25 @@ class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if self._listener is not None:
             await self._listener.stop()
             self._listener = None
+
+    async def async_step_reconfigure(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> config_entries.ConfigFlowResult:
+        """Inform the user that this device uses fixed multicast and cannot be configured.
+
+        This reconfigure step intentionally provides no editable fields — the
+        device defines its multicast address and it is not user-changeable.
+        Display a static informational form with the device serial interpolated.
+        """
+        if user_input is not None:
+            return self.async_abort(reason="reconfigure_successful")
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=vol.Schema({}),
+            description_placeholders={"serial": self._get_reconfigure_entry().data.get(CONF_SERIAL, "")},
+        )
 
 
 __all__ = ["DEFABalancerConfigFlowHandler"]

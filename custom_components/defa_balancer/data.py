@@ -8,8 +8,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
-    from .coordinator import DEFABalancerDataUpdateCoordinator
-    from .coordinator.listeners import BalancerListener
+    from .coordinator import BalancerListener, DEFABalancerDataUpdateCoordinator
 
 
 type DEFABalancerConfigEntry = ConfigEntry[DEFABalancerData]

@@ -1,7 +1,7 @@
 {
   "config": {
     "progress": {
-      "scanning": "Söker efter enheter i nätverket, detta kan ta 5 till 15 sekunder"
+      "scanning": "Söker efter enheter i nätverket, detta kan ta 2 till 10 sekunder"
     },
     "step": {
       "user": {
@@ -34,6 +34,10 @@
       "connection_error": {
         "title": "Anslutningsfel",
         "description": "Home Assistant kunde inte starta multicast-lyssning.\n\nKontrollera nätverks- och värdinställningarna och försök igen."
+      },
+      "reconfigure": {
+        "title": "DEFA Balancer {serial}",
+        "description": "DEFA Balancer {serial} använder en fast multicast-adress och kräver ingen konfiguration."
       }
     },
     "error": {
@@ -41,7 +45,26 @@
       "no_device_found": "Ingen DEFA Balancer hittades."
     },
     "abort": {
-      "already_configured": "DEFA Balancer ({serial}) är redan konfigurerad."
+      "already_configured": "DEFA Balancer ({serial}) är redan konfigurerad.",
+      "reconfigure_successful": "DEFA Balancer omkonfigurerad."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Konfigurera DEFA Balancer-alternativ",
+        "data": {
+          "phase_voltage": "Fasspänning (V)"
+        },
+        "data_description": {
+          "phase_voltage": "Spänning per fas i volt (V), begränsad till 100–250. Standard är 230 V. Detta används för att beräkna effekt från strömavläsningar. Observera att den faktiska spänningen i verkligheten kan variera beroende på tid, plats och elnätets skick, så effektberäkningarna är endast ungefärliga."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "device_unreachable": {
+      "message": "Ingen data mottagen från DEFA Balancer – kontrollera att enheten är påslagen och ansluten till nätverket."
     }
   },
   "issues": {
@@ -72,6 +95,12 @@
       },
       "total_power": {
         "name": "Total effekt"
+      },
+      "firmware": {
+        "name": "Firmware"
+      },
+      "packet_count": {
+        "name": "Paketantal"
       }
     }
   }

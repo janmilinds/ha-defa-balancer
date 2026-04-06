@@ -1,7 +1,7 @@
 {
   "config": {
     "progress": {
-      "scanning": "Scanning devices from network, this may take 5 to 15 seconds"
+      "scanning": "Scanning devices from network, this may take 2 to 10 seconds"
     },
     "step": {
       "user": {
@@ -34,6 +34,10 @@
       "connection_error": {
         "title": "Connection error",
         "description": "Home Assistant could not start multicast listening.\n\nCheck network and host settings, then try again."
+      },
+      "reconfigure": {
+        "title": "DEFA Balancer {serial}",
+        "description": "DEFA Balancer {serial} uses fixed multicast address and requires no configuration."
       }
     },
     "error": {
@@ -41,7 +45,26 @@
       "no_device_found": "No DEFA Balancer found."
     },
     "abort": {
-      "already_configured": "DEFA Balancer ({serial}) is already configured."
+      "already_configured": "DEFA Balancer ({serial}) is already configured.",
+      "reconfigure_successful": "DEFA Balancer reconfigured successfully."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configure DEFA Balancer options",
+        "data": {
+          "phase_voltage": "Phase voltage (V)"
+        },
+        "data_description": {
+          "phase_voltage": "Voltage per phase in volts (V), constrained to 100–250. Default is 230V. This is used to calculate power from current readings. Note, that actual real-world voltage may vary depending on time, location and condition of the electrical grid, so power calculation are only approximate."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "device_unreachable": {
+      "message": "No data received from DEFA Balancer – check device is powered on and reachable."
     }
   },
   "issues": {
@@ -72,6 +95,12 @@
       },
       "total_power": {
         "name": "Total Power"
+      },
+      "firmware": {
+        "name": "Firmware"
+      },
+      "packet_count": {
+        "name": "Packet Count"
       }
     }
   }

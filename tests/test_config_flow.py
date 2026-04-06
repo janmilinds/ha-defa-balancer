@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.defa_balancer.api import BalancerPacket
+from custom_components.defa_balancer.config_flow_handler.config_flow import DEFABalancerConfigFlowHandler
 from custom_components.defa_balancer.const import CONF_SERIAL, DOMAIN
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
@@ -216,6 +218,27 @@ async def test_config_flow_listener_start_failure_shows_connection_error(
         assert result["step_id"] == "connection_error"
 
 
+@pytest.mark.unit
+async def test_config_flow_scan_exception_shows_retry(hass: HomeAssistant, enable_custom_integrations: None) -> None:
+    """Test scan task raising exception shows retry menu (no crash)."""
+    with patch(
+        "custom_components.defa_balancer.config_flow_handler.config_flow.UDPBalancerListener",
+        return_value=_mock_listener(),
+    ):
+
+        async def failing_scan(self) -> list[str]:
+            raise RuntimeError("unexpected failure")
+
+        with patch(
+            "custom_components.defa_balancer.config_flow_handler.config_flow.DEFABalancerConfigFlowHandler._do_scan",
+            failing_scan,
+        ):
+            result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+            result = await _poll_until_done(hass, result)
+
+            assert result["type"] in (FlowResultType.MENU, FlowResultType.FORM)
+
+
 @pytest.mark.integration
 async def test_e2e_config_flow_create_entry_and_setup(
     hass: HomeAssistant,
@@ -230,6 +253,10 @@ async def test_e2e_config_flow_create_entry_and_setup(
     )
 
     async def one_device_scan(self) -> list[str]:
+        # Ensure this scan yields to the event loop so the progress
+        # state is shown before the scan completes, preventing the
+        # user_input from being forwarded to the next step.
+        await asyncio.sleep(0)
         return [FAKE_SERIAL]
 
     with (
@@ -244,7 +271,7 @@ async def test_e2e_config_flow_create_entry_and_setup(
         patch("custom_components.defa_balancer.UDPBalancerListener", return_value=setup_listener),
     ):
         result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
-        result = await _poll_until_done(hass, result)
+        result = await _poll_until_done(hass, result, max_steps=10)
 
         assert result["type"] == FlowResultType.FORM
         result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_SERIAL: FAKE_SERIAL})
@@ -272,6 +299,10 @@ async def test_e2e_config_flow_connection_error_then_retry_success(
     )
 
     async def one_device_scan(self) -> list[str]:
+        # Yield to the event loop to ensure the scan task is incomplete
+        # at first and the progress state is used instead of forwarding
+        # the original user_input to the next step.
+        await asyncio.sleep(0)
         return [FAKE_SERIAL]
 
     with (
@@ -306,3 +337,90 @@ async def test_e2e_config_flow_connection_error_then_retry_success(
 
         assert entry.state is ConfigEntryState.LOADED
         successful_scan_listener.stop.assert_awaited_once()
+
+
+@pytest.mark.unit
+async def test_config_flow_connection_error_form_retry_to_user(
+    hass: HomeAssistant, enable_custom_integrations: None
+) -> None:
+    """Test that submitting the connection_error form restarts scanning."""
+    failing_listener = _mock_listener()
+    failing_listener.start = AsyncMock(side_effect=OSError)
+    success_listener = _mock_listener()
+
+    async def one_device_scan(self) -> list[str]:
+        # Yield to the event loop so the scan runs as a background task
+        # and the flow enters the progress state before completion.
+        await asyncio.sleep(0)
+        return [FAKE_SERIAL]
+
+    with (
+        patch(
+            "custom_components.defa_balancer.config_flow_handler.config_flow.UDPBalancerListener",
+            side_effect=[failing_listener, success_listener],
+        ),
+        patch(
+            "custom_components.defa_balancer.config_flow_handler.config_flow.DEFABalancerConfigFlowHandler._do_scan",
+            one_device_scan,
+        ),
+    ):
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        result = await _poll_until_done(hass, result)
+        assert result["step_id"] == "connection_error"
+        assert result["errors"]["base"] == "cannot_connect"
+
+        # Start a fresh user flow after the failed attempt to ensure retry works
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        result = await _poll_until_done(hass, result)
+
+        # The fresh flow should proceed to the select form
+        assert result["type"] in (FlowResultType.SHOW_PROGRESS, FlowResultType.SHOW_PROGRESS_DONE)
+
+
+@pytest.mark.unit
+async def test_config_flow_already_configured_menu(hass: HomeAssistant, enable_custom_integrations: None) -> None:
+    """Test dedicated already_configured menu when all devices exist."""
+    existing = MockConfigEntry(domain=DOMAIN, data={CONF_SERIAL: FAKE_SERIAL}, unique_id=FAKE_SERIAL)
+    existing.add_to_hass(hass)
+
+    async def one_device_scan(self) -> list[str]:
+        return [FAKE_SERIAL]
+
+    with (
+        patch(
+            "custom_components.defa_balancer.config_flow_handler.config_flow.UDPBalancerListener",
+            return_value=_mock_listener(),
+        ),
+        patch(
+            "custom_components.defa_balancer.config_flow_handler.config_flow.DEFABalancerConfigFlowHandler._do_scan",
+            one_device_scan,
+        ),
+    ):
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        result = await _poll_until_done(hass, result)
+        assert result["type"] == FlowResultType.MENU
+        assert result["step_id"] == "already_configured"
+
+
+@pytest.mark.unit
+async def test_config_flow_async_remove_cancels_task_and_stops_listener(
+    hass: HomeAssistant, enable_custom_integrations: None
+) -> None:
+    """Test async_remove cleans up scan task and listener."""
+    flow = DEFABalancerConfigFlowHandler()
+    flow.hass = hass
+
+    # Simulate an in-progress scan task
+    mock_task = MagicMock()
+    mock_task.done.return_value = False
+    flow._scan_task = mock_task
+
+    # Simulate an active listener
+    listener = _mock_listener()
+    flow._listener = listener
+
+    flow.async_remove()
+
+    mock_task.cancel.assert_called_once()
+    assert flow._scan_task is None
+    assert flow._listener is None

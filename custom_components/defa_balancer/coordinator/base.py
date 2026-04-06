@@ -8,6 +8,7 @@ from time import monotonic
 from typing import TYPE_CHECKING
 
 from custom_components.defa_balancer.const import (
+    CONF_PHASE_VOLTAGE,
     DATA_FIRMWARE,
     DATA_L1,
     DATA_L1_POWER,
@@ -23,10 +24,11 @@ from custom_components.defa_balancer.const import (
     DOMAIN,
     ISSUE_ID_DEVICE_UNREACHABLE_PREFIX,
 )
-from custom_components.defa_balancer.coordinator.listeners import BalancerListener
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+
+from .listeners import BalancerListener
 
 if TYPE_CHECKING:
     from custom_components.defa_balancer.data import DEFABalancerConfigEntry
@@ -132,9 +134,11 @@ class DEFABalancerDataUpdateCoordinator(DataUpdateCoordinator[dict[str, float | 
         l2 = sum(packet.l2 for packet in packets) / packet_count
         l3 = sum(packet.l3 for packet in packets) / packet_count
 
-        l1_power = l1 * DEFAULT_PHASE_VOLTAGE
-        l2_power = l2 * DEFAULT_PHASE_VOLTAGE
-        l3_power = l3 * DEFAULT_PHASE_VOLTAGE
+        phase_voltage = int(self.config_entry.options.get(CONF_PHASE_VOLTAGE, DEFAULT_PHASE_VOLTAGE))
+
+        l1_power = l1 * phase_voltage
+        l2_power = l2 * phase_voltage
+        l3_power = l3 * phase_voltage
 
         return {
             DATA_L1: round(l1, 3),
