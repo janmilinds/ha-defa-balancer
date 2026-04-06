@@ -34,10 +34,6 @@
       "connection_error": {
         "title": "Yhteysvirhe",
         "description": "Home Assistant ei voinut käynnistää multicast-kuuntelua.\n\nTarkista verkko- ja järjestelmäasetukset ja yritä uudelleen."
-      },
-      "reconfigure": {
-        "title": "DEFA Balancer {serial}",
-        "description": "DEFA Balancer {serial} käyttää kiinteää multicast-osoitetta eikä vaadi konfigurointia."
       }
     },
     "error": {
@@ -45,8 +41,7 @@
       "no_device_found": "DEFA Balanceria ei löytynyt."
     },
     "abort": {
-      "already_configured": "DEFA Balancer ({serial}) on jo määritetty.",
-      "reconfigure_successful": "DEFA Balancer uudelleenkonfiguroitu onnistuneesti."
+      "already_configured": "DEFA Balancer ({serial}) on jo määritetty."
     }
   },
   "options": {

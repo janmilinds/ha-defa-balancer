@@ -206,24 +206,5 @@ class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             await self._listener.stop()
             self._listener = None
 
-    async def async_step_reconfigure(
-        self,
-        user_input: dict[str, Any] | None = None,
-    ) -> config_entries.ConfigFlowResult:
-        """Inform the user that this device uses fixed multicast and cannot be configured.
-
-        This reconfigure step intentionally provides no editable fields — the
-        device defines its multicast address and it is not user-changeable.
-        Display a static informational form with the device serial interpolated.
-        """
-        if user_input is not None:
-            return self.async_abort(reason="reconfigure_successful")
-
-        return self.async_show_form(
-            step_id="reconfigure",
-            data_schema=vol.Schema({}),
-            description_placeholders={"serial": self._get_reconfigure_entry().data.get(CONF_SERIAL, "")},
-        )
-
 
 __all__ = ["DEFABalancerConfigFlowHandler"]
