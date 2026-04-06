@@ -52,7 +52,7 @@
           "phase_voltage": "Fasspenning (V)"
         },
         "data_description": {
-          "phase_voltage": "Spenning per fase i volt (V), begrenset til 100–250. Standard er 230 V. Dette brukes til å beregne effekt fra strømmålinger. Merk at den faktiske spenningen i virkeligheten kan variere avhengig av tid, sted og tilstanden til strømnettet, så effektberegningene er kun omtrentlige."
+          "phase_voltage": "Fasspenning i volt (V), begrenset til 100–250 V. Standard er 230 V. Dette brukes til å beregne effekt fra strømmålinger. Merk at den faktiske spenningen i virkeligheten kan variere avhengig av tid, sted og tilstanden til strømnettet, så effektberegningene er kun omtrentlige."
         }
       }
     }

@@ -52,7 +52,7 @@
           "phase_voltage": "Vaihejännite (V)"
         },
         "data_description": {
-          "phase_voltage": "Jännite kussakin vaiheessa volteissa (V), välillä 100–250. Oletusarvo on 230 V. Tätä käytetään tehon laskemiseen virta-arvoista. Huomaa, että todellinen jännite voi vaihdella ajan, sijainnin ja sähköverkon kunnon mukaan, joten teholukemat ovat vain likimääräisiä."
+          "phase_voltage": "Vaihejännite volteissa (V), välillä 100–250 V. Oletusarvo on 230 V. Tätä käytetään tehon laskemiseen virta-arvoista. Huomaa, että todellinen jännite voi vaihdella ajan, sijainnin ja sähköverkon kunnon mukaan, joten teholukemat ovat vain likimääräisiä."
         }
       }
     }
