@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0-beta.4] - 2026-04-06
+
+### Added
+
+- Options flow and a reconfiguration flow to change integration settings after setup.
+- Diagnostic sensors exposing internal health and diagnostics data.
+- Icons configuration for entities to improve UI presentation.
+
+### Changed
+
+- Reduced device scan timeout and improved scanning behavior for faster discovery.
+- Localized and clearer `ConfigEntryNotReady` messages and better edge-case handling.
+- Expanded documentation and quality-scale checklist: usage examples, automation examples, known limitations, data update mechanism, and uninstall instructions.
+- Refactored and consolidated imports and code layout; quality and test coverage improvements.
+
+### Removed
+
+- Unused `entity_utils` helpers package.
+
+---
+**Full Changelog**: https://github.com/janmilinds/ha-defa-balancer/compare/v1.0.0-beta.3...v1.0.0-beta.4
+
+
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 

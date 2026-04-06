@@ -1,7 +1,7 @@
 # Integration Quality Scale — DEFA Balancer
 
 > Assessed against [Home Assistant Integration Quality Scale](https://developers.home-assistant.io/docs/core/integration-quality-scale).
-> Version: 1.0.0-beta.3 | Date: 2026-04-05
+> Version: 1.0.0-beta.4 | Date: 2026-04-05
 
 ## Bronze
 
