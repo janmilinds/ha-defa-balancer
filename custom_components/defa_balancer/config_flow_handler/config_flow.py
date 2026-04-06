@@ -42,15 +42,8 @@ class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(
         config_entry: config_entries.ConfigEntry,
     ) -> DEFABalancerOptionsFlow:
-        """
-        Get the options flow for this handler.
-
-        Returns:
-            The options flow instance for modifying integration options.
-
-        """
-
-        return DEFABalancerOptionsFlow(config_entry)
+        """Get the options flow for this handler."""
+        return DEFABalancerOptionsFlow()
 
     def async_remove(self) -> None:
         """Clean up background task and listener when the flow is dismissed."""

@@ -23,10 +23,6 @@ class DEFABalancerOptionsFlow(config_entries.OptionsFlow):
     https://developers.home-assistant.io/docs/config_entries_options_flow_handler
     """
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-        self._config_entry = config_entry
-
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> config_entries.ConfigFlowResult:
         """Manage the options for the integration.
 
