@@ -13,7 +13,7 @@
 - [x] `config-flow` — UI-based config flow with device scanning
   - [x] Uses `data_description` for options flow fields
   - [x] `ConfigEntry.data` for immutable setup data; `ConfigEntry.options` for user-changeable phase voltage
-- [x] `dependency-transparency` — No third-party PyPI dependencies; uses only `aiohttp` / stdlib
+- [x] `dependency-transparency` — No third-party PyPI dependencies;
 - [x] `docs-actions` — No service actions; N/A
 - [x] `docs-high-level-description` — README.md describes DEFA Balancer product and integration purpose
 - [x] `docs-installation-instructions` — `docs/user/GETTING_STARTED.md` provides HACS and manual installation steps

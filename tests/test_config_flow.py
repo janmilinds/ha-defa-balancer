@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -252,6 +253,10 @@ async def test_e2e_config_flow_create_entry_and_setup(
     )
 
     async def one_device_scan(self) -> list[str]:
+        # Ensure this scan yields to the event loop so the progress
+        # state is shown before the scan completes, preventing the
+        # user_input from being forwarded to the next step.
+        await asyncio.sleep(0)
         return [FAKE_SERIAL]
 
     with (
@@ -266,7 +271,7 @@ async def test_e2e_config_flow_create_entry_and_setup(
         patch("custom_components.defa_balancer.UDPBalancerListener", return_value=setup_listener),
     ):
         result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
-        result = await _poll_until_done(hass, result)
+        result = await _poll_until_done(hass, result, max_steps=10)
 
         assert result["type"] == FlowResultType.FORM
         result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_SERIAL: FAKE_SERIAL})
@@ -294,6 +299,10 @@ async def test_e2e_config_flow_connection_error_then_retry_success(
     )
 
     async def one_device_scan(self) -> list[str]:
+        # Yield to the event loop to ensure the scan task is incomplete
+        # at first and the progress state is used instead of forwarding
+        # the original user_input to the next step.
+        await asyncio.sleep(0)
         return [FAKE_SERIAL]
 
     with (
@@ -340,6 +349,9 @@ async def test_config_flow_connection_error_form_retry_to_user(
     success_listener = _mock_listener()
 
     async def one_device_scan(self) -> list[str]:
+        # Yield to the event loop so the scan runs as a background task
+        # and the flow enters the progress state before completion.
+        await asyncio.sleep(0)
         return [FAKE_SERIAL]
 
     with (
@@ -356,6 +368,13 @@ async def test_config_flow_connection_error_form_retry_to_user(
         result = await _poll_until_done(hass, result)
         assert result["step_id"] == "connection_error"
         assert result["errors"]["base"] == "cannot_connect"
+
+        # Start a fresh user flow after the failed attempt to ensure retry works
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        result = await _poll_until_done(hass, result)
+
+        # The fresh flow should proceed to the select form
+        assert result["type"] in (FlowResultType.SHOW_PROGRESS, FlowResultType.SHOW_PROGRESS_DONE)
 
 
 @pytest.mark.unit

@@ -217,14 +217,12 @@ class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         Display a static informational form with the device serial interpolated.
         """
         if user_input is not None:
-            return self.async_update_reload_and_abort(
-                self._get_reconfigure_entry(),
-                data_updates={},
-            )
+            return self.async_abort(reason="reconfigure_successful")
+
         return self.async_show_form(
             step_id="reconfigure",
             data_schema=vol.Schema({}),
-            description_placeholders={"serial": self._get_reconfigure_entry().data["serial"]},
+            description_placeholders={"serial": self._get_reconfigure_entry().data.get(CONF_SERIAL, "")},
         )
 
 

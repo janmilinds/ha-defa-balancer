@@ -11,7 +11,7 @@ This guide will help you install and set up the DEFA Balancer custom integration
 
 ## Supported Devices
 
-The integration is designed to work with DEFA Balancer devices that broadcast their data via multicast. It has been tested with P/N: 715004. Should be also compatible with DEFA Balancer S (P/N: 715008) but has not been explicitly tested.
+The integration is designed to work with DEFA Balancer devices that broadcast their data via multicast. It has been tested with P/N: 715004. It should also be compatible with DEFA Balancer S (P/N: 715008), but this has not been explicitly tested.
 
 ## Installation
 

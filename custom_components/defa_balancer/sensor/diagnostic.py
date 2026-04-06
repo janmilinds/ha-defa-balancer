@@ -26,7 +26,7 @@ DIAGNOSTIC_ENTITY_DESCRIPTIONS = (
 
 
 class DEFABalancerDiagnosticSensor(SensorEntity, DEFABalancerEntity):
-    """DEFA Balancer diagnostic sensor for non-numeric values."""
+    """DEFA Balancer diagnostic sensor for diagnostic fields."""
 
     @property
     def native_value(self) -> Any | None:

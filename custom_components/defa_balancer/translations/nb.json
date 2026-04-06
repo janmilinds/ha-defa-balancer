@@ -54,10 +54,10 @@
       "init": {
         "title": "Konfigurer DEFA Balancer-alternativer",
         "data": {
-          "phase_voltage": "Fasspennning (V)"
+          "phase_voltage": "Fasspenning (V)"
         },
         "data_description": {
-          "phase_voltage": "Spennning per fase i volt (V), begrenset til 100–250. Standard er 230 V. Dette brukes til å beregne effekt fra strømmålinger. Merk at den faktiske spenningen i virkeligheten kan variere avhengig av tid, sted og tilstanden til strømnettet, så effektberegningene er kun omtrentlige."
+          "phase_voltage": "Spenning per fase i volt (V), begrenset til 100–250. Standard er 230 V. Dette brukes til å beregne effekt fra strømmålinger. Merk at den faktiske spenningen i virkeligheten kan variere avhengig av tid, sted og tilstanden til strømnettet, så effektberegningene er kun omtrentlige."
         }
       }
     }
@@ -95,8 +95,7 @@
       },
       "total_power": {
         "name": "Total effekt"
-      }
-      ,
+      },
       "firmware": {
         "name": "Fastvare"
       },

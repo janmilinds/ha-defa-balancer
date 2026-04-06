@@ -13,11 +13,11 @@ class DEFABalancerOptionsFlow(config_entries.OptionsFlow):
     """
     Handle options for DEFA Balancer config entries.
 
-    This class manages the options that users can modify after initial setup,
-    such as update intervals and debug settings.
+    This class manages the options that users can modify after initial setup.
+    Currently, the only supported option is `phase_voltage`.
 
     The options flow always starts with async_step_init and provides a single
-    form for all configurable options.
+    form for the configurable options.
 
     For more information:
     https://developers.home-assistant.io/docs/config_entries_options_flow_handler
