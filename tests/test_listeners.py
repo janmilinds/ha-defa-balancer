@@ -50,6 +50,20 @@ def test_mock_listener_get_all_serials_unique_order() -> None:
 
 
 @pytest.mark.unit
+async def test_udp_listener_get_all_serials_unique_order() -> None:
+    """UDP listener should return unique serials in insertion order after pushes."""
+    listener = UDPBalancerListener("234.222.250.1", 57082, serial=None)
+
+    # Push packets with duplicate serials
+    listener.push(_packet("A1"))
+    listener.push(_packet("B2"))
+    listener.push(_packet("A1"))
+    listener.push(_packet("C3"))
+
+    assert listener.get_all_serials() == ["A1", "B2", "C3"]
+
+
+@pytest.mark.unit
 async def test_udp_listener_wait_for_packet_timeout_returns_false() -> None:
     """wait_for_packet should return False when timeout expires."""
     listener = UDPBalancerListener("234.222.250.1", 57082, serial=None)

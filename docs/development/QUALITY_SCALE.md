@@ -9,7 +9,7 @@
 - [x] `appropriate-polling` — Not a polling integration (`local_push`); DataUpdateCoordinator reads from a ring buffer on a 10 s interval
 - [x] `brands` — Brand assets in `custom_components/defa_balancer/brand/` (icon, logo, @2x variants)
 - [x] `common-modules` — Base entity in `entity/base.py`, coordinator in `coordinator/`, data class in `data.py`
-- [x] `config-flow-test-coverage` — Config flow tests cover user, scanning, select, retry, already_configured, connection_error, reconfigure, and options flows (97 % overall coverage)
+- [x] `config-flow-test-coverage` — Config flow tests cover user, scanning, select, retry, already_configured, connection_error, reconfigure, and options flows (full coverage)
 - [x] `config-flow` — UI-based config flow with device scanning
   - [x] Uses `data_description` for options flow fields
   - [x] `ConfigEntry.data` for immutable setup data; `ConfigEntry.options` for user-changeable phase voltage

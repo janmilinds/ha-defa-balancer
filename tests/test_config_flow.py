@@ -65,6 +65,8 @@ async def _poll_until_done(hass: HomeAssistant, result: dict, max_steps: int = 5
     for _ in range(max_steps):
         if result["type"] not in (FlowResultType.SHOW_PROGRESS, FlowResultType.SHOW_PROGRESS_DONE):
             break
+        # Yield to the event loop so background scan tasks have a chance to run
+        await asyncio.sleep(0)
         result = await hass.config_entries.flow.async_configure(result["flow_id"])
     return result
 
@@ -74,6 +76,8 @@ async def test_config_flow_user_step_starts_scanning(hass: HomeAssistant, enable
     """Test user step immediately starts scanning progress."""
 
     async def instant_scan(self) -> list[str]:
+        # Yield once so the scan runs as a background task and progress is shown
+        await asyncio.sleep(0)
         return []
 
     with (
@@ -101,6 +105,8 @@ async def test_config_flow_no_device_shows_retry_menu(hass: HomeAssistant, enabl
     ):
 
         async def empty_scan(self) -> list[str]:
+            # Yield once to force progress state before completion
+            await asyncio.sleep(0)
             return []
 
         with patch(
@@ -111,7 +117,7 @@ async def test_config_flow_no_device_shows_retry_menu(hass: HomeAssistant, enabl
             result = await _poll_until_done(hass, result)
 
             # After scan completes with no devices, show retry menu
-            assert result["type"] in (FlowResultType.MENU, FlowResultType.FORM)
+            assert result["type"] == FlowResultType.MENU
 
 
 @pytest.mark.unit
@@ -127,6 +133,8 @@ async def test_config_flow_device_found_shows_select_form(
     ):
 
         async def one_device_scan(self) -> list[str]:
+            # Yield once so the progress state is observed before the scan completes
+            await asyncio.sleep(0)
             return [mock_serial]
 
         with patch(
@@ -153,6 +161,8 @@ async def test_config_flow_select_creates_entry_with_serial(
     ):
 
         async def one_device_scan(self) -> list[str]:
+            # Yield once so the progress state is observed before the scan completes
+            await asyncio.sleep(0)
             return [mock_serial]
 
         with patch(
@@ -185,6 +195,8 @@ async def test_config_flow_duplicate_serial_menu(hass: HomeAssistant, enable_cus
     ):
 
         async def duplicate_scan(self) -> list[str]:
+            # Yield once so the progress state is observed before completion
+            await asyncio.sleep(0)
             return [mock_serial]
 
         with patch(
@@ -227,6 +239,8 @@ async def test_config_flow_scan_exception_shows_retry(hass: HomeAssistant, enabl
     ):
 
         async def failing_scan(self) -> list[str]:
+            # Yield once to ensure the scan task runs asynchronously
+            await asyncio.sleep(0)
             raise RuntimeError("unexpected failure")
 
         with patch(
@@ -236,7 +250,7 @@ async def test_config_flow_scan_exception_shows_retry(hass: HomeAssistant, enabl
             result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
             result = await _poll_until_done(hass, result)
 
-            assert result["type"] in (FlowResultType.MENU, FlowResultType.FORM)
+            assert result["type"] == FlowResultType.MENU
 
 
 @pytest.mark.integration
@@ -374,7 +388,7 @@ async def test_config_flow_connection_error_form_retry_to_user(
         result = await _poll_until_done(hass, result)
 
         # The fresh flow should proceed to the select form
-        assert result["type"] in (FlowResultType.SHOW_PROGRESS, FlowResultType.SHOW_PROGRESS_DONE)
+        assert result["type"] == FlowResultType.FORM
 
 
 @pytest.mark.unit
@@ -384,6 +398,8 @@ async def test_config_flow_already_configured_menu(hass: HomeAssistant, enable_c
     existing.add_to_hass(hass)
 
     async def one_device_scan(self) -> list[str]:
+        # Yield once to ensure progress state is entered before completion
+        await asyncio.sleep(0)
         return [FAKE_SERIAL]
 
     with (
@@ -424,3 +440,84 @@ async def test_config_flow_async_remove_cancels_task_and_stops_listener(
     mock_task.cancel.assert_called_once()
     assert flow._scan_task is None
     assert flow._listener is None
+
+
+@pytest.mark.unit
+async def test_async_step_user_cancels_scan_task(hass: HomeAssistant) -> None:
+    """`async_step_user` cancels an in-progress scan task before scanning."""
+    flow = DEFABalancerConfigFlowHandler()
+    flow.hass = hass
+
+    # Simulate an in-progress task that is not done
+    mock_task = MagicMock()
+    mock_task.done.return_value = False
+    flow._scan_task = mock_task
+
+    # Patch the subsequent scanning step to avoid running the full scan
+    with patch.object(
+        DEFABalancerConfigFlowHandler, "async_step_scanning", AsyncMock(return_value={"type": FlowResultType.FORM})
+    ):
+        result = await flow.async_step_user()
+
+    mock_task.cancel.assert_called_once()
+    assert flow._scan_task is None
+    assert result["type"] == FlowResultType.FORM
+
+
+@pytest.mark.unit
+async def test_connection_error_submit_restarts_scanning(hass: HomeAssistant) -> None:
+    """Submitting the connection_error form should clear error and restart scanning."""
+    flow = DEFABalancerConfigFlowHandler()
+    flow.hass = hass
+    flow._scan_error = "cannot_connect"
+
+    with patch.object(DEFABalancerConfigFlowHandler, "async_step_user", AsyncMock(return_value={"type": "restarted"})):
+        result = await flow.async_step_connection_error(user_input={})
+
+    assert flow._scan_error is None
+    assert result["type"] == "restarted"
+
+
+@pytest.mark.unit
+async def test_do_scan_second_phase_returns_after_retry(hass: HomeAssistant) -> None:
+    """_do_scan should wait initial window then retry and return later serials."""
+    flow = DEFABalancerConfigFlowHandler()
+    flow.hass = hass
+
+    listener = MagicMock()
+    # First call returns empty, second returns the found serial
+    listener.get_all_serials.side_effect = [[], [FAKE_SERIAL]]
+    flow._listener = listener
+
+    # Patch sleep to avoid delays
+    with patch("custom_components.defa_balancer.config_flow_handler.config_flow.asyncio.sleep", AsyncMock()):
+        res = await flow._do_scan()
+
+    assert res == [FAKE_SERIAL]
+
+
+@pytest.mark.unit
+async def test_do_scan_returns_empty_when_no_listener(hass: HomeAssistant) -> None:
+    """_do_scan returns empty list immediately if no listener is set."""
+    flow = DEFABalancerConfigFlowHandler()
+    flow.hass = hass
+
+    flow._listener = None
+    res = await flow._do_scan()
+    assert res == []
+
+
+@pytest.mark.unit
+async def test_do_scan_returns_immediately_if_serials_present(hass: HomeAssistant) -> None:
+    """_do_scan should return immediately if listener already has serials."""
+    flow = DEFABalancerConfigFlowHandler()
+    flow.hass = hass
+
+    listener = MagicMock()
+    listener.get_all_serials.return_value = [FAKE_SERIAL]
+    flow._listener = listener
+
+    with patch("custom_components.defa_balancer.config_flow_handler.config_flow.asyncio.sleep", AsyncMock()):
+        res = await flow._do_scan()
+
+    assert res == [FAKE_SERIAL]
