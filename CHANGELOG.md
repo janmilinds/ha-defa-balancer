@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0-rc.1] - 2026-04-06
+
+### Changed
+
+- Increased test coverage to 100 % for config flow and listeners; 100 % overall.
+
+### Removed
+
+- Reconfiguration flow as integration does not have any user-changeable configuration settings.
+
+---
+**Full Changelog**: https://github.com/janmilinds/ha-defa-balancer/compare/v1.0.0-beta.4...v1.0.0-rc.1
+
 ## [1.0.0-beta.4] - 2026-04-06
 
 ### Added
