@@ -5,7 +5,7 @@ from logging import Logger, getLogger
 LOGGER: Logger = getLogger(__package__)
 
 DOMAIN = "defa_balancer"
-PARALLEL_UPDATES = 1
+PARALLEL_UPDATES = 0
 
 DEFAULT_MULTICAST_GROUP = "234.222.250.1"
 DEFAULT_MULTICAST_PORT = 57082

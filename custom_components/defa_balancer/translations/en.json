@@ -95,8 +95,7 @@
       },
       "total_power": {
         "name": "Total Power"
-      }
-      ,
+      },
       "firmware": {
         "name": "Firmware"
       },

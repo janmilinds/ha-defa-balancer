@@ -24,10 +24,11 @@ from custom_components.defa_balancer.const import (
     DOMAIN,
     ISSUE_ID_DEVICE_UNREACHABLE_PREFIX,
 )
-from custom_components.defa_balancer.coordinator.listeners import BalancerListener
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+
+from .listeners import BalancerListener
 
 if TYPE_CHECKING:
     from custom_components.defa_balancer.data import DEFABalancerConfigEntry

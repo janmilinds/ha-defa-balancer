@@ -12,6 +12,17 @@ The DEFA Balancer uses automatic network discovery. When you add the integration
 
 **No manual IP or authentication configuration is needed.**
 
+## Supported Devices
+
+All DEFA Balancer devices that broadcast via multicast UDP should be compatible. The integration communicates using the standard Balancer multicast protocol.
+
+| Part Number | Device | Status |
+| --- | --- | --- |
+| P/N: 715004 | DEFA Balancer | Verified |
+| P/N: 715008 | DEFA Balancer S | Compatible (untested) |
+
+If you have a DEFA Balancer model not listed here, please report your experience via [GitHub Issues](https://github.com/janmilinds/ha-defa-balancer/issues).
+
 ## Multicast Network Requirements
 
 For discovery and operation:
