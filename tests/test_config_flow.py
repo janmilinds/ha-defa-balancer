@@ -428,6 +428,7 @@ async def test_config_flow_async_remove_cancels_task_and_stops_listener(
     assert flow._listener is None
 
 
+@pytest.mark.unit
 async def test_async_step_user_cancels_scan_task(hass: HomeAssistant) -> None:
     """`async_step_user` cancels an in-progress scan task before scanning."""
     flow = DEFABalancerConfigFlowHandler()
@@ -439,7 +440,9 @@ async def test_async_step_user_cancels_scan_task(hass: HomeAssistant) -> None:
     flow._scan_task = mock_task
 
     # Patch the subsequent scanning step to avoid running the full scan
-    with patch.object(DEFABalancerConfigFlowHandler, "async_step_scanning", AsyncMock(return_value={"type": FlowResultType.FORM})):
+    with patch.object(
+        DEFABalancerConfigFlowHandler, "async_step_scanning", AsyncMock(return_value={"type": FlowResultType.FORM})
+    ):
         result = await flow.async_step_user()
 
     mock_task.cancel.assert_called_once()
@@ -447,6 +450,7 @@ async def test_async_step_user_cancels_scan_task(hass: HomeAssistant) -> None:
     assert result["type"] == FlowResultType.FORM
 
 
+@pytest.mark.unit
 async def test_connection_error_submit_restarts_scanning(hass: HomeAssistant) -> None:
     """Submitting the connection_error form should clear error and restart scanning."""
     flow = DEFABalancerConfigFlowHandler()
@@ -460,6 +464,7 @@ async def test_connection_error_submit_restarts_scanning(hass: HomeAssistant) ->
     assert result["type"] == "restarted"
 
 
+@pytest.mark.unit
 async def test_do_scan_second_phase_returns_after_retry(hass: HomeAssistant) -> None:
     """_do_scan should wait initial window then retry and return later serials."""
     flow = DEFABalancerConfigFlowHandler()
@@ -477,6 +482,7 @@ async def test_do_scan_second_phase_returns_after_retry(hass: HomeAssistant) -> 
     assert res == [FAKE_SERIAL]
 
 
+@pytest.mark.unit
 async def test_do_scan_returns_empty_when_no_listener(hass: HomeAssistant) -> None:
     """_do_scan returns empty list immediately if no listener is set."""
     flow = DEFABalancerConfigFlowHandler()
@@ -487,6 +493,7 @@ async def test_do_scan_returns_empty_when_no_listener(hass: HomeAssistant) -> No
     assert res == []
 
 
+@pytest.mark.unit
 async def test_do_scan_returns_immediately_if_serials_present(hass: HomeAssistant) -> None:
     """_do_scan should return immediately if listener already has serials."""
     flow = DEFABalancerConfigFlowHandler()
