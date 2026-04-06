@@ -76,6 +76,8 @@ async def test_config_flow_user_step_starts_scanning(hass: HomeAssistant, enable
     """Test user step immediately starts scanning progress."""
 
     async def instant_scan(self) -> list[str]:
+        # Yield once so the scan runs as a background task and progress is shown
+        await asyncio.sleep(0)
         return []
 
     with (
@@ -91,7 +93,7 @@ async def test_config_flow_user_step_starts_scanning(hass: HomeAssistant, enable
         result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
 
         # The flow skips the form and goes straight to scanning progress
-        assert result["type"] in (FlowResultType.SHOW_PROGRESS, FlowResultType.SHOW_PROGRESS_DONE, FlowResultType.FORM)
+        assert result["type"] in (FlowResultType.SHOW_PROGRESS, FlowResultType.SHOW_PROGRESS_DONE)
 
 
 @pytest.mark.unit
@@ -103,6 +105,8 @@ async def test_config_flow_no_device_shows_retry_menu(hass: HomeAssistant, enabl
     ):
 
         async def empty_scan(self) -> list[str]:
+            # Yield once to force progress state before completion
+            await asyncio.sleep(0)
             return []
 
         with patch(
@@ -113,7 +117,7 @@ async def test_config_flow_no_device_shows_retry_menu(hass: HomeAssistant, enabl
             result = await _poll_until_done(hass, result)
 
             # After scan completes with no devices, show retry menu
-            assert result["type"] in (FlowResultType.MENU, FlowResultType.FORM)
+            assert result["type"] == FlowResultType.MENU
 
 
 @pytest.mark.unit
@@ -129,6 +133,8 @@ async def test_config_flow_device_found_shows_select_form(
     ):
 
         async def one_device_scan(self) -> list[str]:
+            # Yield once so the progress state is observed before the scan completes
+            await asyncio.sleep(0)
             return [mock_serial]
 
         with patch(
@@ -155,6 +161,8 @@ async def test_config_flow_select_creates_entry_with_serial(
     ):
 
         async def one_device_scan(self) -> list[str]:
+            # Yield once so the progress state is observed before the scan completes
+            await asyncio.sleep(0)
             return [mock_serial]
 
         with patch(
@@ -187,6 +195,8 @@ async def test_config_flow_duplicate_serial_menu(hass: HomeAssistant, enable_cus
     ):
 
         async def duplicate_scan(self) -> list[str]:
+            # Yield once so the progress state is observed before completion
+            await asyncio.sleep(0)
             return [mock_serial]
 
         with patch(
@@ -229,6 +239,8 @@ async def test_config_flow_scan_exception_shows_retry(hass: HomeAssistant, enabl
     ):
 
         async def failing_scan(self) -> list[str]:
+            # Yield once to ensure the scan task runs asynchronously
+            await asyncio.sleep(0)
             raise RuntimeError("unexpected failure")
 
         with patch(
@@ -238,7 +250,7 @@ async def test_config_flow_scan_exception_shows_retry(hass: HomeAssistant, enabl
             result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
             result = await _poll_until_done(hass, result)
 
-            assert result["type"] in (FlowResultType.MENU, FlowResultType.FORM)
+            assert result["type"] == FlowResultType.MENU
 
 
 @pytest.mark.integration
@@ -375,8 +387,8 @@ async def test_config_flow_connection_error_form_retry_to_user(
         result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
         result = await _poll_until_done(hass, result)
 
-        # The fresh flow should proceed to the select form (either progress or direct form)
-        assert result["type"] in (FlowResultType.SHOW_PROGRESS, FlowResultType.SHOW_PROGRESS_DONE, FlowResultType.FORM)
+        # The fresh flow should proceed to the select form
+        assert result["type"] == FlowResultType.FORM
 
 
 @pytest.mark.unit
@@ -386,6 +398,8 @@ async def test_config_flow_already_configured_menu(hass: HomeAssistant, enable_c
     existing.add_to_hass(hass)
 
     async def one_device_scan(self) -> list[str]:
+        # Yield once to ensure progress state is entered before completion
+        await asyncio.sleep(0)
         return [FAKE_SERIAL]
 
     with (
