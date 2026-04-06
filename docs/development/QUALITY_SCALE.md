@@ -59,7 +59,7 @@
 - [x] `entity-translations` — All entities have translation keys in `translations/en.json`
 - [x] `exception-translations` — `ConfigEntryNotReady(translation_key="device_unreachable")` uses translated exception
 - [x] `icon-translations` — `icons.json` maps translation keys to MDI icons for all entities
-- [x] `reconfiguration-flow` — `async_step_reconfigure` shows informational form with serial placeholder
+- [ ] `reconfiguration-flow` — `async_step_reconfigure` - integration does not have settings in configuration flow
 - [x] `repair-issues` — Persistent repair issue created when device is unreachable for >60 s; cleared on recovery
 - [ ] `stale-devices` — N/A: single device per config entry; removing config entry removes the device
 
