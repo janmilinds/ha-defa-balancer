@@ -9,7 +9,7 @@
 - [x] `appropriate-polling` — Not a polling integration (`local_push`); DataUpdateCoordinator reads from a ring buffer on a 10 s interval
 - [x] `brands` — Brand assets in `custom_components/defa_balancer/brand/` (icon, logo, @2x variants)
 - [x] `common-modules` — Base entity in `entity/base.py`, coordinator in `coordinator/`, data class in `data.py`
-- [x] `config-flow-test-coverage` — Config flow tests cover user, scanning, select, retry, already_configured, connection_error, reconfigure, and options flows (full coverage)
+- [x] `config-flow-test-coverage` — Config flow tests cover user, scanning, select, retry, already_configured, connection_error, and options flows (full coverage)
 - [x] `config-flow` — UI-based config flow with device scanning
   - [x] Uses `data_description` for options flow fields
   - [x] `ConfigEntry.data` for immutable setup data; `ConfigEntry.options` for user-changeable phase voltage
@@ -59,7 +59,7 @@
 - [x] `entity-translations` — All entities have translation keys in `translations/en.json`
 - [x] `exception-translations` — `ConfigEntryNotReady(translation_key="device_unreachable")` uses translated exception
 - [x] `icon-translations` — `icons.json` maps translation keys to MDI icons for all entities
-- [x] `reconfiguration-flow` — `async_step_reconfigure` shows informational form with serial placeholder
+- [ ] `reconfiguration-flow` — `async_step_reconfigure` - integration does not have settings in configuration flow
 - [x] `repair-issues` — Persistent repair issue created when device is unreachable for >60 s; cleared on recovery
 - [ ] `stale-devices` — N/A: single device per config entry; removing config entry removes the device
 

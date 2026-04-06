@@ -34,10 +34,6 @@
       "connection_error": {
         "title": "Anslutningsfel",
         "description": "Home Assistant kunde inte starta multicast-lyssning.\n\nKontrollera nätverks- och värdinställningarna och försök igen."
-      },
-      "reconfigure": {
-        "title": "DEFA Balancer {serial}",
-        "description": "DEFA Balancer {serial} använder en fast multicast-adress och kräver ingen konfiguration."
       }
     },
     "error": {
@@ -45,8 +41,7 @@
       "no_device_found": "Ingen DEFA Balancer hittades."
     },
     "abort": {
-      "already_configured": "DEFA Balancer ({serial}) är redan konfigurerad.",
-      "reconfigure_successful": "DEFA Balancer omkonfigurerad."
+      "already_configured": "DEFA Balancer ({serial}) är redan konfigurerad."
     }
   },
   "options": {
@@ -57,7 +52,7 @@
           "phase_voltage": "Fasspänning (V)"
         },
         "data_description": {
-          "phase_voltage": "Spänning per fas i volt (V), begränsad till 100–250. Standard är 230 V. Detta används för att beräkna effekt från strömavläsningar. Observera att den faktiska spänningen i verkligheten kan variera beroende på tid, plats och elnätets skick, så effektberäkningarna är endast ungefärliga."
+          "phase_voltage": "Fasspänning i volt (V), begränsad till 100–250 V. Standard är 230 V. Detta används för att beräkna effekt från strömavläsningar. Observera att den faktiska spänningen i verkligheten kan variera beroende på tid, plats och elnätets skick, så effektberäkningarna är endast ungefärliga."
         }
       }
     }

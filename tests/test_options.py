@@ -1,4 +1,4 @@
-"""Tests for DEFA Balancer options flow and reconfigure step."""
+"""Tests for DEFA Balancer options flow."""
 
 from __future__ import annotations
 
@@ -44,7 +44,7 @@ class _FakeUDPListener:
 
 
 def _mock_entry() -> MockConfigEntry:
-    """Create a loaded config entry for options and reconfigure tests."""
+    """Create a loaded config entry for options tests."""
     return MockConfigEntry(
         domain=DOMAIN,
         data={
@@ -94,41 +94,3 @@ async def test_options_flow_saves_phase_voltage(hass: HomeAssistant, enable_cust
     )
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert entry.options[CONF_PHASE_VOLTAGE] == 120
-
-
-@pytest.mark.unit
-async def test_reconfigure_step_shows_form(hass: HomeAssistant, enable_custom_integrations: None) -> None:
-    """Test reconfigure step shows informational form with serial placeholder."""
-    entry = _mock_entry()
-    entry.add_to_hass(hass)
-
-    listener = _FakeUDPListener(packets=[BalancerPacket(serial=FAKE_SERIAL, l1=8.5, l2=7.2, l3=6.9, firmware="4.0.0")])
-
-    with patch("custom_components.defa_balancer.UDPBalancerListener", return_value=listener):
-        assert await hass.config_entries.async_setup(entry.entry_id)
-        await hass.async_block_till_done()
-
-    result = await entry.start_reconfigure_flow(hass)
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "reconfigure"
-    assert result["description_placeholders"]["serial"] == FAKE_SERIAL
-
-
-@pytest.mark.unit
-async def test_reconfigure_step_submit_aborts_successfully(
-    hass: HomeAssistant, enable_custom_integrations: None
-) -> None:
-    """Test reconfigure submitting confirms with abort."""
-    entry = _mock_entry()
-    entry.add_to_hass(hass)
-
-    listener = _FakeUDPListener(packets=[BalancerPacket(serial=FAKE_SERIAL, l1=8.5, l2=7.2, l3=6.9, firmware="4.0.0")])
-
-    with patch("custom_components.defa_balancer.UDPBalancerListener", return_value=listener):
-        assert await hass.config_entries.async_setup(entry.entry_id)
-        await hass.async_block_till_done()
-
-    result = await entry.start_reconfigure_flow(hass)
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={})
-    assert result["type"] == FlowResultType.ABORT
-    assert result["reason"] == "reconfigure_successful"
