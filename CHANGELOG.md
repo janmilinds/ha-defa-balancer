@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0] - 2026-04-07
+
+### Added
+
+- Automatic device discovery from the local network during setup.
+- Energy monitoring sensors for phase currents (A) and power (W) for all three phases (L1, L2, L3) and total power.
+- Configurable phase voltage setting for power calculations (default 230 V).
+- Sensors show as unavailable when the device stops sending data and recover automatically when data resumes.
+- Device offline detection with a persistent Home Assistant issue and troubleshooting checklist.
+- Device details shown in Home Assistant: manufacturer, model, firmware version, and serial number.
+- Diagnostic sensors exposing internal health data.
+- Language support for Finnish, Swedish, Danish, Norwegian, and German.
+
+---
+**Full Changelog**: https://github.com/janmilinds/ha-defa-balancer/commits/v1.0.0
+
 ## [1.0.0-rc.1] - 2026-04-06
 
 ### Changed
