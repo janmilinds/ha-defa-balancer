@@ -37,7 +37,7 @@ The DEFA Balancer uses a **push architecture** — data flows from device to Hom
 
 1. **Device broadcasts:** The Balancer continuously sends UDP multicast packets containing current measurements and firmware version
 2. **Listener captures:** The integration's UDP listener receives packets and stores them in a ring buffer (last 25 packets)
-3. **Coordinator reads:** Every 10 seconds, the DataUpdateCoordinator reads the latest packet from the buffer and updates entity states
+3. **Coordinator reads:** Every 10 seconds, the DataUpdateCoordinator reads the latest packets from the buffer and updates entity states
 4. **Unavailability detection:** If no fresh packet arrives within 15 seconds, sensors are marked "unavailable"
 5. **Offline repair issue:** If the device remains unreachable for 60 seconds, a persistent repair issue is created to notify the user
 

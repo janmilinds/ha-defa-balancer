@@ -73,6 +73,8 @@ Or go to **Settings** → **Devices & Services** → **Add Integration** → sea
 
 The integration scans the network for up to 10 seconds. If your Balancer is on and reachable, it will appear automatically — just confirm the device and you're done.
 
+For more details on setup, configuration, and troubleshooting, see the [getting started guide](docs/user/GETTING_STARTED.md) and [configuration documentation](docs/user/CONFIGURATION.md).
+
 ## Troubleshooting
 
 If no device is found during setup, check the following:
@@ -80,6 +82,8 @@ If no device is found during setup, check the following:
 - Balancer is powered on and connected to the network
 - Home Assistant is on the same subnet/VLAN as the Balancer
 - Your router or switch allows multicast traffic (check your router configuration)
+
+For more detailed troubleshooting steps, see the [configuration documentation](docs/user/CONFIGURATION.md).
 
 ## Contributing
 
