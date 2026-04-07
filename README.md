@@ -71,7 +71,7 @@ Then install it:
 
 Or go to **Settings** → **Devices & Services** → **Add Integration** → search for **DEFA Balancer**.
 
-The integration scans the network for up to 15 seconds. If your Balancer is on and reachable, it will appear automatically — just confirm the device and you're done.
+The integration scans the network for up to 10 seconds. If your Balancer is on and reachable, it will appear automatically — just confirm the device and you're done.
 
 ## Troubleshooting
 

@@ -130,6 +130,22 @@ automation:
 
 ### More Use Cases
 
+**Add kilowatt sensor** — create a template sensor to convert total power to kW:
+
+1. Go to **Settings** → **Devices & Services** → **Helpers**
+2. Click **+ Create Helper** → **Template Sensor**
+3. Click **Sensor**
+4. Set name to e.g. "Total Power (kW)"
+5. In State use the following template:
+
+    ```yaml
+    {{ (states('sensor.defa_balancer_xxxx_total_power') | float / 1000) | round(2) }}
+    ```
+
+6. Set Unit of measurement to "kW", Device class to "power", and State class to "measurement"
+7. Set your DEFA Balancer device as linked device
+8. Click **Submit** to create the sensor
+
 **Monitor phase imbalance** — alert when one phase draws significantly more than others:
 
 ```yaml
@@ -151,7 +167,7 @@ automation:
 1. Go to **Settings** → **Devices & Services** → **Helpers**
 2. Click **+ Create Helper** → **Integration — Riemann sum integral**
 3. Select `sensor.defa_balancer_xxxx_total_power` as the input sensor
-4. Set method to **Left** and precision to 2
+4. Set method to **Trapezoidal** and precision to 2
 5. The resulting kWh sensor can be added to the Energy dashboard
 
 **Track device availability** — log when the Balancer goes offline/online:
