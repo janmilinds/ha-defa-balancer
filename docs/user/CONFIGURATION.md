@@ -130,6 +130,7 @@ If sensors show "unavailable" after 15 seconds without updates (or stay "unknown
 
 ## Known Limitations
 
+- **Power measurement accuracy:** Power is calculated as `current × phase voltage`. The integration does not measure voltage or power factor. Actual power may differ slightly due to voltage variations (typically ±6% in Nordic grids) and reactive loads such as heat pumps or EV chargers. For typical household monitoring purposes the accuracy is sufficient.
 - **Multicast only:** The device communicates via multicast UDP. Routed or VPN-connected Home Assistant instances that cannot receive multicast traffic will not work.
 - **IPv4 only:** IPv6 multicast is not supported.
 - **No device control:** The integration is read-only — it monitors current and power but cannot control the Balancer or connected chargers.
