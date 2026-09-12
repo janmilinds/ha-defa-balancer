@@ -42,28 +42,15 @@ The DEFA Balancer is a load management module designed for EV charging installat
 
 Prerequisite: [HACS](https://hacs.xyz/) is installed.
 
-This repository is not in the official HACS default list, so add it as a custom repository first:
-
-1. Open HACS in Home Assistant.
-2. Open **Integrations**.
-3. Click the three-dot menu in the top-right corner.
-4. Select **Custom repositories**.
-5. Add repository URL: `https://github.com/janmilinds/ha-defa-balancer`.
-6. Select category: **Integration**.
-7. Click **Add**.
-
-Then install it:
-
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=janmilinds&repository=ha-defa-balancer&category=integration)
 
-8. Click the button above, or find **DEFA Balancer** in HACS and click **Download**.
-9. Restart Home Assistant.
+Or manually: open HACS, search for "DEFA Balancer", click "Download", and restart Home Assistant.
 
 ### Manual
 
-1. Download the `custom_components/defa_balancer/` folder from this repository.
-2. Copy it to your Home Assistant's `custom_components/` directory.
-3. Restart Home Assistant.
+1. Download the latest release from [GitHub](https://github.com/janmilinds/ha-defa-balancer/releases)
+2. Extract the `defa_balancer` folder to your `custom_components` directory
+3. Restart Home Assistant
 
 ## Setup
 
@@ -104,7 +91,7 @@ MIT — see [LICENSE](LICENSE).
 [commits-shield]: https://img.shields.io/github/commit-activity/y/janmilinds/ha-defa-balancer.svg?style=for-the-badge
 [commits]: https://github.com/janmilinds/ha-defa-balancer/commits/main
 [hacs]: https://github.com/hacs/integration
-[hacsbadge]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
+[hacsbadge]: https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge
 [license-shield]: https://img.shields.io/github/license/janmilinds/ha-defa-balancer.svg?style=for-the-badge
 [maintenance-shield]: https://img.shields.io/badge/maintainer-%40janmilinds-blue.svg?style=for-the-badge
 [releases-shield]: https://img.shields.io/github/release/janmilinds/ha-defa-balancer.svg?style=for-the-badge
