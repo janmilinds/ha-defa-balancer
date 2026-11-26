@@ -75,6 +75,33 @@ async def test_async_setup_returns_true(hass: HomeAssistant) -> None:
 
 
 @pytest.mark.unit
+async def test_async_setup_deletes_issues_of_removed_entries(hass: HomeAssistant) -> None:
+    """Startup should delete device unreachable issues whose entry was removed before the fix."""
+    entry = _mock_entry()
+    entry.add_to_hass(hass)
+    kept_issue_id = f"{ISSUE_ID_DEVICE_UNREACHABLE_PREFIX}_{entry.entry_id}"
+    orphaned_issue_id = f"{ISSUE_ID_DEVICE_UNREACHABLE_PREFIX}_removed_entry"
+    other_issue_id = "some_other_issue"
+    for issue_id in (kept_issue_id, orphaned_issue_id, other_issue_id):
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            issue_id,
+            is_fixable=False,
+            is_persistent=True,
+            severity=ir.IssueSeverity.ERROR,
+            translation_key="device_unreachable",
+        )
+
+    assert await async_setup(hass, {}) is True
+
+    issue_registry = ir.async_get(hass)
+    assert issue_registry.async_get_issue(DOMAIN, orphaned_issue_id) is None
+    assert issue_registry.async_get_issue(DOMAIN, kept_issue_id) is not None
+    assert issue_registry.async_get_issue(DOMAIN, other_issue_id) is not None
+
+
+@pytest.mark.unit
 async def test_async_setup_entry_success(hass: HomeAssistant) -> None:
     """Test async_setup_entry creates runtime data and forwards platforms."""
     entry = _mock_entry()

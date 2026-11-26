@@ -39,7 +39,17 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the integration from YAML (config-entry only)."""
+    _delete_orphaned_issues(hass)
     return True
+
+
+def _delete_orphaned_issues(hass: HomeAssistant) -> None:
+    """Delete device unreachable issues left behind by entries removed before async_remove_entry existed."""
+    prefix = device_unreachable_issue_id("")
+    current = {device_unreachable_issue_id(entry.entry_id) for entry in hass.config_entries.async_entries(DOMAIN)}
+    for domain, issue_id in list(ir.async_get(hass).issues):
+        if domain == DOMAIN and issue_id.startswith(prefix) and issue_id not in current:
+            ir.async_delete_issue(hass, DOMAIN, issue_id)
 
 
 async def async_setup_entry(
