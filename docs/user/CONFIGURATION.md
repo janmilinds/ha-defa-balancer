@@ -134,7 +134,7 @@ If sensors show "unavailable" after 15 seconds without updates (or stay "unknown
 - **Multicast only:** The device communicates via multicast UDP. Routed or VPN-connected Home Assistant instances that cannot receive multicast traffic will not work.
 - **IPv4 only:** IPv6 multicast is not supported.
 - **No device control:** The integration is read-only — it monitors current and power but cannot control the Balancer or connected chargers.
-- **Single network interface:** The listener binds to `0.0.0.0`. On multi-homed hosts, multicast may arrive on an unexpected interface depending on OS routing.
+- **Single network interface:** The listener joins the multicast group on the interface the operating system picks by default (`0.0.0.0`). On hosts with several network interfaces, it may listen on a different interface than the one the device is on.
 - **No energy dashboard support:** Sensors report instantaneous power (W), not energy (kWh). A Riemann integration helper can be used to create energy sensors.
 - **Fixed multicast address:** The multicast group and port are determined by the device firmware and cannot be changed.
 
