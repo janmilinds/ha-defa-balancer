@@ -55,7 +55,7 @@ async def async_setup_entry(
 
     if not await listener.wait_for_packet(timeout=5.0):
         await listener.stop()
-        raise ConfigEntryNotReady(translation_key="device_unreachable")
+        raise ConfigEntryNotReady(translation_domain=DOMAIN, translation_key="device_unreachable")
 
     coordinator = DEFABalancerDataUpdateCoordinator(
         hass=hass,
