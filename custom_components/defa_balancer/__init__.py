@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from homeassistant.const import Platform
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import issue_registry as ir
 import homeassistant.helpers.config_validation as cv
 
 from .const import (
@@ -20,7 +21,7 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
-from .coordinator import DEFABalancerDataUpdateCoordinator, UDPBalancerListener
+from .coordinator import DEFABalancerDataUpdateCoordinator, UDPBalancerListener, device_unreachable_issue_id
 from .data import DEFABalancerData
 
 if TYPE_CHECKING:
@@ -38,7 +39,17 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the integration from YAML (config-entry only)."""
+    _delete_orphaned_issues(hass)
     return True
+
+
+def _delete_orphaned_issues(hass: HomeAssistant) -> None:
+    """Delete device unreachable issues left behind by entries removed before async_remove_entry existed."""
+    prefix = device_unreachable_issue_id("")
+    current = {device_unreachable_issue_id(entry.entry_id) for entry in hass.config_entries.async_entries(DOMAIN)}
+    for domain, issue_id in list(ir.async_get(hass).issues):
+        if domain == DOMAIN and issue_id.startswith(prefix) and issue_id not in current:
+            ir.async_delete_issue(hass, DOMAIN, issue_id)
 
 
 async def async_setup_entry(
@@ -109,6 +120,14 @@ async def async_unload_entry(
     if unload_ok:
         await entry.runtime_data.listener.stop()
     return unload_ok
+
+
+async def async_remove_entry(
+    hass: HomeAssistant,
+    entry: DEFABalancerConfigEntry,
+) -> None:
+    """Delete the entry's device unreachable issue, which has no fix flow to dismiss it."""
+    ir.async_delete_issue(hass, DOMAIN, device_unreachable_issue_id(entry.entry_id))
 
 
 async def async_reload_entry(

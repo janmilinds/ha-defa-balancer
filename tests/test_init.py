@@ -24,10 +24,11 @@ from custom_components.defa_balancer import (
     async_unload_entry,
 )
 from custom_components.defa_balancer.api import BalancerPacket
+from custom_components.defa_balancer.const import ISSUE_ID_DEVICE_UNREACHABLE_PREFIX
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import entity_registry as er, issue_registry as ir
 from homeassistant.util.dt import utcnow
 from tests.test_constants import FAKE_SERIAL
 
@@ -71,6 +72,33 @@ class _FakeUDPListener:
 async def test_async_setup_returns_true(hass: HomeAssistant) -> None:
     """Test config-entry-only async_setup returns True."""
     assert await async_setup(hass, {}) is True
+
+
+@pytest.mark.unit
+async def test_async_setup_deletes_issues_of_removed_entries(hass: HomeAssistant) -> None:
+    """Startup should delete device unreachable issues whose entry was removed before the fix."""
+    entry = _mock_entry()
+    entry.add_to_hass(hass)
+    kept_issue_id = f"{ISSUE_ID_DEVICE_UNREACHABLE_PREFIX}_{entry.entry_id}"
+    orphaned_issue_id = f"{ISSUE_ID_DEVICE_UNREACHABLE_PREFIX}_removed_entry"
+    other_issue_id = "some_other_issue"
+    for issue_id in (kept_issue_id, orphaned_issue_id, other_issue_id):
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            issue_id,
+            is_fixable=False,
+            is_persistent=True,
+            severity=ir.IssueSeverity.ERROR,
+            translation_key="device_unreachable",
+        )
+
+    assert await async_setup(hass, {}) is True
+
+    issue_registry = ir.async_get(hass)
+    assert issue_registry.async_get_issue(DOMAIN, orphaned_issue_id) is None
+    assert issue_registry.async_get_issue(DOMAIN, kept_issue_id) is not None
+    assert issue_registry.async_get_issue(DOMAIN, other_issue_id) is not None
 
 
 @pytest.mark.unit
@@ -209,6 +237,39 @@ async def test_setup_retries_when_listener_cannot_start(
     assert entry.state is ConfigEntryState.SETUP_RETRY
     assert entry.reason == "Could not open the multicast socket: [Errno 19] No such device"
     listener.wait_for_packet.assert_not_awaited()
+
+
+@pytest.mark.integration
+async def test_remove_entry_deletes_device_unreachable_issue(
+    hass: HomeAssistant,
+    enable_custom_integrations: None,
+) -> None:
+    """Removing the entry should delete its device unreachable issue, which the user cannot dismiss."""
+    entry = _mock_entry()
+    entry.add_to_hass(hass)
+    issue_id = f"{ISSUE_ID_DEVICE_UNREACHABLE_PREFIX}_{entry.entry_id}"
+    ir.async_create_issue(
+        hass,
+        DOMAIN,
+        issue_id,
+        is_fixable=False,
+        is_persistent=True,
+        severity=ir.IssueSeverity.ERROR,
+        translation_key="device_unreachable",
+    )
+
+    listener = _FakeUDPListener(packets=[])
+    listener.wait_for_packet.return_value = False
+
+    with patch("custom_components.defa_balancer.UDPBalancerListener", return_value=listener):
+        assert not await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        assert entry.state is ConfigEntryState.SETUP_RETRY
+
+        await hass.config_entries.async_remove(entry.entry_id)
+        await hass.async_block_till_done()
+
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
 
 
 @pytest.mark.unit
