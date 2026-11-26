@@ -43,8 +43,6 @@ Notes:
 - Stop with Ctrl+C.
 """
 
-from __future__ import annotations
-
 import argparse
 import random
 import socket

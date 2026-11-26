@@ -1,13 +1,11 @@
 """Tests for DEFA Balancer coordinator."""
 
-from __future__ import annotations
-
 from datetime import timedelta
 import logging
 from unittest.mock import patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.defa_balancer.api import BalancerPacket
 from custom_components.defa_balancer.const import (

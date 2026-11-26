@@ -13,12 +13,17 @@ GitHub is used to host code, to track issues and feature requests, as well as ac
 
 Pull requests are the best way to propose changes to the codebase.
 
+AI-assisted contributions are welcome, including substantially AI-generated work. Read the
+[`AI_POLICY.md`](AI_POLICY.md) before contributing. Be accurate about what you reviewed and tested, and do not present
+automated checks as human review or real-device testing.
+
 1. Fork the repo and create your branch from `main`.
-2. Run `script/setup/bootstrap` to install dependencies and pre-commit hooks.
+2. Run `script/setup/bootstrap` to install dependencies and git hooks.
 3. If you've changed something, update the documentation.
 4. Make sure your code passes all checks (using `script/check` for linting and type checking).
 5. Test your contribution.
-6. Issue that pull request!
+6. Review the resulting diff and describe its verification accurately.
+7. Issue that pull request!
 
 ## Any contributions you make will be under the MIT Software License
 
@@ -41,7 +46,7 @@ Report a bug by [opening a new issue](../../issues/new/choose); it's that easy!
 - What actually happens
 - Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
 
-People *love* thorough bug reports. I'm not even kidding.
+People _love_ thorough bug reports. I'm not even kidding.
 
 ## Use a Consistent Coding Style
 
@@ -54,28 +59,37 @@ Run `script/check` to lint and type-check your code before submitting, or `scrip
 
 **Local validation:** Run `script/hassfest` to validate your integration against Home Assistant's quality standards using the official validation tools. This checks manifest.json, translations, services.yaml (service action definitions), and integration structure locally before pushing to GitHub.
 
-## GitHub Copilot Support
+## AI Agent Support
 
-This project includes [prompt files](./.github/prompts/) to help you work more efficiently with GitHub Copilot. These reusable templates provide context and requirements for common tasks:
+This project ships [agent skills](./.agents/skills/README.md) — task-triggered playbooks written against the open
+[`SKILL.md`](https://agentskills.io/specification) standard. They work with GitHub Copilot, Claude Code, OpenAI Codex
+CLI, OpenCode, Cursor, Gemini CLI, and any other tool that implements the standard. Codex, Copilot, OpenCode and
+VS Code read `.agents/skills/` directly; Claude Code reaches the same files through the `.claude/skills/` symlink.
 
-- **Add New Sensor** - Create sensors with proper structure
-- **Add New Service** - Implement services with validation
-- **Add Config Option** - Add configuration options to flows
-- **Add Entity to Device** - Expand device capabilities
-- **Debug Coordinator Issue** - Diagnose data update problems
-- **Update Translations** - Manage multilingual strings
+Skills cover adding entity platforms and service actions, config flow work, debugging the coordinator, translations,
+testing, quality-scale review, deprecated APIs, breaking changes, planning, releases, and repository tooling. A
+compatible agent loads the right one on its own; ask for it by name if it does not.
 
-**Example usage in Copilot Chat:**
+Alongside those, `AGENTS.md` provides always-on project context and `.agents/instructions/*.instructions.md` provide
+per-file-type style rules for GitHub Copilot.
 
-```text
-#file:Add New Sensor.prompt.md Add a temperature sensor
+Two commands keep the skills honest:
+
+```bash
+script/skills-check                     # structure — runs in CI and as a pre-commit hook
 ```
 
-See the [prompts README](./.github/prompts/README.md) for details on using these templates.
+**Companion skill for operating Home Assistant.** These skills cover _developing_ the integration. When you drive the
+devcontainer's Home Assistant instance with an agent — creating test automations, dashboards, or helpers while trying
+your integration out — the community
+[`home-assistant-best-practices`](https://github.com/homeassistant-ai/skills) skill covers that side. It is not bundled
+here and not required; install it into your own agent if you find it useful.
+
+Please read [`AI_POLICY.md`](./AI_POLICY.md) before submitting AI-assisted contributions.
 
 ## Code Quality
 
-This blueprint follows Home Assistant's [integration quality standards](https://developers.home-assistant.io/docs/core/integration-quality-scale/) as best practices. The code includes:
+This blueprint follows Home Assistant's [integration quality standards](https://contributors.home-assistant.io/core/quality-scale/) as best practices. The code includes:
 
 - ✅ Comprehensive docstrings with links to official documentation
 - ✅ Full type hints for better IDE support

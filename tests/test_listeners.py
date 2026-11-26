@@ -1,7 +1,5 @@
 """Tests for listener edge cases."""
 
-from __future__ import annotations
-
 import asyncio
 import socket
 from unittest.mock import AsyncMock, MagicMock, patch

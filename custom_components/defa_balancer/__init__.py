@@ -1,7 +1,5 @@
 """Set up DEFA Balancer integration."""
 
-from __future__ import annotations
-
 from datetime import timedelta
 from typing import TYPE_CHECKING
 

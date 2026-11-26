@@ -16,7 +16,7 @@
 - [x] `dependency-transparency` — No third-party PyPI dependencies;
 - [x] `docs-actions` — No service actions; N/A
 - [x] `docs-high-level-description` — README.md describes DEFA Balancer product and integration purpose
-- [x] `docs-installation-instructions` — `docs/user/GETTING_STARTED.md` provides HACS and manual installation steps
+- [x] `docs-installation-instructions` — `docs/user/GETTING_STARTED.md` provides Marketplace and manual installation steps
 - [x] `docs-removal-instructions` — `docs/user/CONFIGURATION.md` includes removal and uninstall instructions
 - [x] `entity-event-setup` — Listener started in `async_setup_entry`, stopped in `async_unload_entry`; entities use coordinator subscription via `CoordinatorEntity`
 - [x] `entity-unique-id` — Unique ID = `{entry_id}_{description.key}`, set in base entity
@@ -31,7 +31,7 @@
 - [x] `action-exceptions` — No service actions; N/A
 - [x] `config-entry-unloading` — `async_unload_entry` unloads platforms and stops listener
 - [x] `docs-configuration-parameters` — `docs/user/CONFIGURATION.md` documents options (phase voltage) and multicast requirements
-- [x] `docs-installation-parameters` — Prerequisites (HA version, HACS, network requirements) documented in `docs/user/GETTING_STARTED.md`
+- [x] `docs-installation-parameters` — Prerequisites (HA version, network requirements) documented in `docs/user/GETTING_STARTED.md`
 - [x] `entity-unavailable` — `CoordinatorEntity` marks entities unavailable when `UpdateFailed` is raised (no data within 15 s)
 - [x] `integration-owner` — `"codeowners": ["@janmilinds"]` in `manifest.json`
 - [x] `log-when-unavailable` — Coordinator logs `UpdateFailed` on unavailability; clears on recovery

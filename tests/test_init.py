@@ -1,13 +1,11 @@
 """Tests for DEFA Balancer integration setup lifecycle."""
 
-from __future__ import annotations
-
 from datetime import timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry, async_fire_time_changed
+from pytest_homeassistant.common import MockConfigEntry, async_fire_time_changed
 
 from custom_components.defa_balancer import (
     CONF_MULTICAST_GROUP,

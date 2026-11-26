@@ -1,7 +1,5 @@
 """Diagnostics support for defa_balancer."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers.redact import async_redact_data

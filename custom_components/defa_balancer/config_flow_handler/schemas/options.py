@@ -3,23 +3,21 @@
 Schemas for the options flow that allows users to modify settings
 after initial configuration.
 
-This module contains reusable voluptuous schemas used by the config and
+This module contains reusable probatio schemas used by the config and
 options flows. Export small helper functions so callers can compute defaults
 before requesting the schema.
 """
 
-from __future__ import annotations
-
 from collections.abc import Mapping
 from typing import Any
 
-import voluptuous as vol
+import probatio
 
 from custom_components.defa_balancer.const import CONF_PHASE_VOLTAGE, DEFAULT_PHASE_VOLTAGE
 from homeassistant.helpers import selector
 
 
-def get_options_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
+def get_options_schema(defaults: Mapping[str, Any] | None = None) -> probatio.Schema:
     """
     Get schema for options flow.
 
@@ -31,9 +29,9 @@ def get_options_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
 
     """
     defaults = defaults or {}
-    return vol.Schema(
+    return probatio.Schema(
         {
-            vol.Optional(
+            probatio.Optional(
                 CONF_PHASE_VOLTAGE, default=defaults.get(CONF_PHASE_VOLTAGE, DEFAULT_PHASE_VOLTAGE)
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(

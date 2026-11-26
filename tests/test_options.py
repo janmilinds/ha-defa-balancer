@@ -1,11 +1,9 @@
 """Tests for DEFA Balancer options flow."""
 
-from __future__ import annotations
-
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.defa_balancer.api import BalancerPacket
 from custom_components.defa_balancer.const import (

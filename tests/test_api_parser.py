@@ -1,7 +1,5 @@
 """Tests for DEFA Balancer packet parsing."""
 
-from __future__ import annotations
-
 import pytest
 
 from custom_components.defa_balancer.api import parse_packet

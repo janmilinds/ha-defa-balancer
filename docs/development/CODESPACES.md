@@ -21,15 +21,15 @@ When testing a pull request created by GitHub Copilot Coding Agent:
 3. Run `./script/develop` to start Home Assistant
 4. Test the integration in the browser (port 8123 forwards automatically)
 
-For the complete Copilot Agent workflow, see [COPILOT_AGENT.md](COPILOT_AGENT.md).
+For the complete Copilot Agent workflow, see [AI_AGENTS.md](AI_AGENTS.md).
 
 ## What Works Automatically
 
 - ✅ Git configuration with your GitHub account
 - ✅ Port forwarding for Home Assistant (port 8123)
 - ✅ All VS Code extensions pre-installed
-- ✅ Python 3.13 environment with dependencies
-- ✅ Home Assistant + HACS ready to use
+- ✅ Python 3.14 & Node.js LTS environment with dependencies
+- ✅ Home Assistant ready to use, with the Marketplace
 - ✅ All development scripts work identically
 
 ## Key Differences from Local Development
@@ -65,7 +65,7 @@ When running `script/develop`, Home Assistant starts on port 8123:
 
 - Workspace files persist between stops/starts
 - Git changes are preserved
-- Home Assistant config and HACS persist
+- Home Assistant config and installed integrations persist
 
 ### Multiple Projects
 
@@ -85,9 +85,8 @@ When you first create a Codespace, VS Code's Python extensions (especially Pylan
 
 After the reload, the linters and language servers will be fully initialized and the false problems will disappear.
 
-> **Why does this happen?** When the Codespace is first created, setup runs in the background installing dependencies and configuring the Python environment. VS Code extensions start before this completes, leading to temporary false errors. A window reload ensures all extensions are properly initialized.
->
-> **This is normal!** This only happens on first creation - subsequent connections work perfectly.
+> [!NOTE]
+> **Why does this happen?** When the Codespace is first created, setup runs in the background installing dependencies and configuring the Python environment. VS Code extensions start before this completes, leading to temporary false errors. A window reload ensures all extensions are properly initialized. **This is normal** — it only happens on first creation; subsequent connections work perfectly.
 
 ### Codespace Won't Start
 

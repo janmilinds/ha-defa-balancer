@@ -179,109 +179,13 @@ Platform entities inherit from both:
 
 ## AI Agent Instructions
 
-This project includes comprehensive instruction files for AI coding assistants (GitHub Copilot, Claude, etc.) to ensure consistent code generation that follows Home Assistant patterns and project conventions.
-
-### Instruction File Architecture
-
-**Layered approach:**
-
-1. **`AGENTS.md`** - High-level "survival guide" for all AI agents (project overview, workflow, validation)
-2. **`.github/instructions/*.instructions.md`** - Detailed path-specific patterns (applied based on file being edited)
-3. **`.github/copilot-instructions.md`** - GitHub Copilot-specific workflow guidance
-
-### Available Instruction Files
-
-| File | Applies To | Purpose |
-|------|------------|---------|
-| `python.instructions.md` | `**/*.py` | Python code style, imports, type hints, async patterns, linting |
-| `yaml.instructions.md` | `**/*.yaml`, `**/*.yml` | YAML formatting, Home Assistant YAML conventions |
-| `json.instructions.md` | `**/*.json` | JSON formatting, schema validation, no trailing commas |
-| `markdown.instructions.md` | `**/*.md` | Markdown formatting, documentation structure, linting |
-| `manifest.instructions.md` | `**/manifest.json` | Integration manifest requirements, quality scale, IoT class |
-| `configuration_yaml.instructions.md` | `**/configuration.yaml` | Home Assistant configuration patterns (deprecated for device integrations) |
-| `config_flow.instructions.md` | `**/config_flow_handler/**/*.py`, `**/config_flow.py` | Config flow patterns, discovery, reauth, reconfigure, unique IDs |
-| `service_actions.instructions.md` | `**/service_actions/**/*.py` | Service action implementation, registration in `async_setup()`, error handling |
-| `services_yaml.instructions.md` | `**/services.yaml` | Service action definitions, schema, descriptions, examples (legacy filename) |
-| `entities.instructions.md` | Entity platform files | Entity implementation, EntityDescription, device info, state management |
-| `coordinator.instructions.md` | `**/coordinator/**/*.py`, `**/api/**/*.py` | DataUpdateCoordinator patterns, error handling, caching, pull vs push |
-| `api.instructions.md` | `**/api/**/*.py`, `**/coordinator/**/*.py` | API client implementation, exceptions, rate limiting, pagination |
-| `diagnostics.instructions.md` | `**/diagnostics.py` | Diagnostics data collection, `async_redact_data()` for sensitive data |
-| `repairs.instructions.md` | `**/repairs.py` | Repair flows, issue creation, severity levels, fix flows |
-| `translations.instructions.md` | `**/translations/*.json` | Translation file structure, placeholders, nested keys |
-| `tests.instructions.md` | `tests/**/*.py` | Test patterns, fixtures, mocking, pytest conventions |
-
-**Note:** Entity platform files include: `alarm_control_panel/**/*.py`, `binary_sensor/**/*.py`, `button/**/*.py`, `camera/**/*.py`, `climate/**/*.py`, `cover/**/*.py`, `fan/**/*.py`, `humidifier/**/*.py`, `light/**/*.py`, `lock/**/*.py`, `number/**/*.py`, `select/**/*.py`, `sensor/**/*.py`, `siren/**/*.py`, `switch/**/*.py`, `vacuum/**/*.py`, `water_heater/**/*.py`, `entity/**/*.py`, `entity_utils/**/*.py`
-
-### Instruction File Application
-
-**GitHub Copilot:**
-
-Uses frontmatter `applyTo` patterns to automatically apply instructions based on file being edited:
-
-```yaml
----
-applyTo:
-  - "**/*.py"
----
-```
-
-**Other AI Agents:**
-
-Typically read `AGENTS.md` for project overview and may use path-specific instructions when available.
-
-### Benefits
-
-- ✅ **Consistent code quality** - AI generates code that passes validation on first run
-- ✅ **Home Assistant patterns** - Follows Core development standards and best practices
-- ✅ **Context-aware** - File-specific instructions ensure appropriate patterns
-- ✅ **Reduced iteration** - Fewer validation errors and corrections needed
-- ✅ **Knowledge transfer** - Instructions document project conventions and decisions
-
-### Maintaining Instructions
-
-- Keep `AGENTS.md` concise (high-level guidance only, ~30,000 ft view)
-- Put detailed patterns in path-specific `.instructions.md` files
-- Update instructions when patterns change or new conventions emerge
-- Remove outdated rules to prevent bloat
-- Document major architectural decisions in `DECISIONS.md`
-
-### Using GitHub Copilot Coding Agent
-
-**GitHub Copilot Coding Agent** ([github.com/copilot/agents](https://github.com/copilot/agents)) can autonomously initialize new projects from this template and implement features.
-
-**Template Initialization:**
-
-When creating a repository from this template, you can provide a prompt to Copilot Coding Agent that includes:
-
-- Integration domain, title, and repository details
-- Instructions to run `initialize.sh` in unattended mode with `--force` flag
-- The agent will set up the project and create an initialization pull request
-
-**Working with initialized projects:**
-
-Once a project is initialized, Copilot Coding Agent:
-
-- Automatically reads all instruction files (`AGENTS.md`, `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md`)
-- Runs validation scripts (`script/check`) to verify changes
-- Creates pull requests with comprehensive implementations
-- Can iterate based on test failures and linter errors
-
-**Agent-specific instructions (since November 2025):**
-
-Use `excludeAgent` frontmatter to control which agents use specific instructions:
-
-```yaml
----
-applyTo: "**/*.py"
-excludeAgent: "code-review"  # Only coding-agent uses this
----
-```
-
-See [`.github/COPILOT_CODING_AGENT.md`](../../.github/COPILOT_CODING_AGENT.md) for detailed usage instructions, example prompts, and troubleshooting.
+The agent instructions come from the integration blueprint and are kept current by the weekly template sync:
+[`AGENTS.md`](../../AGENTS.md) is the always-loaded entry point, `.agents/instructions/` holds the per-file rules and
+`.agents/skills/` the task procedures. [`AI_AGENTS.md`](AI_AGENTS.md) describes the setup.
 
 ## Key Design Decisions
 
-See [DECISIONS.md](./DECISIONS.md) for architectural and design decisions made during development.
+Architectural decisions are recorded one per file in [`decisions/`](decisions/README.md).
 
 ## Extension Points
 
