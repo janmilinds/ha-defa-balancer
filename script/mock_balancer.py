@@ -34,6 +34,7 @@ Arguments:
 --jitter     Random amp jitter (+/-) applied per phase (default: 0.15)
 --firmware   Firmware version string (default: 4.0.0)
 --source-port UDP source port; on bind conflict, falls back to OS-selected free port (default: 4568)
+--source-address IPv4 address of the interface to send from (default: the one routing to --group)
 
 Notes:
 -----
@@ -119,6 +120,11 @@ def parse_args() -> argparse.Namespace:
         help="UDP source port (DEFA devices commonly use 4568)",
     )
     parser.add_argument(
+        "--source-address",
+        default=None,
+        help="IPv4 address of the interface to send from (default: the one routing to --group)",
+    )
+    parser.add_argument(
         "--serial",
         default="AB12CD34",
         help="Device serial in packet prefix L4<serial>",
@@ -137,6 +143,13 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def outgoing_address(group: str, port: int) -> str:
+    """Return the local address the routing table uses to reach the multicast group."""
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
+        probe.connect((group, port))
+        return probe.getsockname()[0]
+
+
 def main() -> int:
     """Run the mock sender loop until interrupted."""
     args = parse_args()
@@ -146,11 +159,13 @@ def main() -> int:
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 1)
     sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
+    source_address = args.source_address or outgoing_address(args.group, args.port)
+    sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(source_address))
     try:
-        sock.bind(("", args.source_port))
+        sock.bind((source_address, args.source_port))
         bound_port = args.source_port
     except OSError:
-        sock.bind(("", 0))
+        sock.bind((source_address, 0))
         bound_port = sock.getsockname()[1]
 
     sequence = 255
@@ -158,7 +173,7 @@ def main() -> int:
 
     print(
         f"Sending mock DEFA Balancer packets to {args.group}:{args.port} "
-        f"from source port {bound_port} (serial={args.serial})"
+        f"from {source_address}:{bound_port} (serial={args.serial})"
     )
     print("Press Ctrl+C to stop")
 
