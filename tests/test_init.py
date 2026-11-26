@@ -123,6 +123,26 @@ async def test_async_setup_entry_raises_not_ready_when_no_packets(hass: HomeAssi
     listener.stop.assert_awaited_once()
 
 
+@pytest.mark.integration
+async def test_setup_retry_reason_is_translated_when_no_packets(
+    hass: HomeAssistant,
+    enable_custom_integrations: None,
+) -> None:
+    """The retry reason should be the translated message, not the string "None"."""
+    entry = _mock_entry()
+    entry.add_to_hass(hass)
+
+    listener = _FakeUDPListener(packets=[])
+    listener.wait_for_packet.return_value = False
+
+    with patch("custom_components.defa_balancer.UDPBalancerListener", return_value=listener):
+        assert not await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+    assert entry.state is ConfigEntryState.SETUP_RETRY
+    assert entry.reason == "No data received from DEFA Balancer – check device is powered on and reachable"
+
+
 @pytest.mark.unit
 async def test_async_unload_entry_stops_listener_on_success(hass: HomeAssistant) -> None:
     """Test async_unload_entry stops listener when unload succeeds."""
