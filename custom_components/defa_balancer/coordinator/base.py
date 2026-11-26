@@ -34,6 +34,11 @@ if TYPE_CHECKING:
     from custom_components.defa_balancer.data import DEFABalancerConfigEntry
 
 
+def device_unreachable_issue_id(entry_id: str) -> str:
+    """Return the device unreachable issue ID for a config entry."""
+    return f"{ISSUE_ID_DEVICE_UNREACHABLE_PREFIX}_{entry_id}"
+
+
 class DEFABalancerDataUpdateCoordinator(DataUpdateCoordinator[dict[str, float | int | str]]):
     """Coordinate packet aggregation for entity updates."""
 
@@ -63,7 +68,7 @@ class DEFABalancerDataUpdateCoordinator(DataUpdateCoordinator[dict[str, float | 
     @property
     def _offline_issue_id(self) -> str:
         """Return issue ID scoped to the config entry."""
-        return f"{ISSUE_ID_DEVICE_UNREACHABLE_PREFIX}_{self.config_entry.entry_id}"
+        return device_unreachable_issue_id(self.config_entry.entry_id)
 
     def _track_unavailable_state(self) -> None:
         """Track continuous offline state and create an error issue if needed."""

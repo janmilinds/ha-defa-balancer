@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .base import DEFABalancerDataUpdateCoordinator
+from .base import DEFABalancerDataUpdateCoordinator, device_unreachable_issue_id
 from .listeners import BalancerListener, MockBalancerListener, UDPBalancerListener
 
 __all__ = [
@@ -10,4 +10,5 @@ __all__ = [
     "DEFABalancerDataUpdateCoordinator",
     "MockBalancerListener",
     "UDPBalancerListener",
+    "device_unreachable_issue_id",
 ]
