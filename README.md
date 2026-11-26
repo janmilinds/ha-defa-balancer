@@ -33,7 +33,7 @@ The DEFA Balancer is a load management module designed for EV charging installat
 ## Requirements
 
 - Home Assistant 2025.12.3 or newer
-- DEFA Balancer connected to the same network/subnet/VLAN as Home Assistant
+- DEFA Balancer connected to the same network/subnet/VLAN as Home Assistant, or its multicast traffic forwarded to Home Assistant's VLAN ([details](docs/user/CONFIGURATION.md#home-assistant-on-a-different-vlan))
 - Multicast UDP traffic to `234.222.250.1:57082` allowed on your network
 
 ## Installation
@@ -67,7 +67,7 @@ For more details on setup, configuration, and troubleshooting, see the [getting 
 If no device is found during setup, check the following:
 
 - Balancer is powered on and connected to the network
-- Home Assistant is on the same subnet/VLAN as the Balancer
+- Home Assistant is on the same subnet/VLAN as the Balancer, or the Balancer's multicast traffic is forwarded to it
 - Your router or switch allows multicast traffic (check your router configuration)
 
 For more detailed troubleshooting steps, see the [configuration documentation](docs/user/CONFIGURATION.md).
