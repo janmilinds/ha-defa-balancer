@@ -267,7 +267,7 @@ async def test_udp_listener_receives_real_multicast_packet(socket_enabled: None)
     multicast_group = "239.255.0.10"
 
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as temp_sock:
-        temp_sock.bind(("", 0))
+        temp_sock.bind((multicast_group, 0))
         multicast_port = temp_sock.getsockname()[1]
 
     listener = UDPBalancerListener(multicast_group, multicast_port, serial=FAKE_SERIAL)
