@@ -58,6 +58,9 @@
     }
   },
   "exceptions": {
+    "cannot_listen": {
+      "message": "Kunne ikke åbne multicast-socketen: {error}"
+    },
     "device_unreachable": {
       "message": "Ingen data modtaget fra DEFA Balancer – kontroller, at enheden er tændt og tilsluttet netværket."
     }

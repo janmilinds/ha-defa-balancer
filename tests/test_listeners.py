@@ -203,6 +203,36 @@ async def test_udp_listener_binds_to_multicast_group() -> None:
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize("failing_step", ["bind", "join_group", "endpoint"])
+async def test_udp_listener_start_closes_socket_on_os_error(failing_step: str) -> None:
+    """A failing socket call in start() should close the socket and re-raise."""
+    listener = UDPBalancerListener("234.222.250.1", 57082, serial=None)
+    sock = MagicMock()
+    error = OSError(19, "No such device")
+    if failing_step == "bind":
+        sock.bind.side_effect = error
+    elif failing_step == "join_group":
+
+        def _setsockopt(level: int, option: int, value: object) -> None:
+            if option == socket.IP_ADD_MEMBERSHIP:
+                raise error
+
+        sock.setsockopt.side_effect = _setsockopt
+    loop = asyncio.get_running_loop()
+    endpoint = AsyncMock(side_effect=error if failing_step == "endpoint" else None)
+
+    with (
+        patch("custom_components.defa_balancer.coordinator.listeners.socket.socket", return_value=sock),
+        patch.object(loop, "create_datagram_endpoint", endpoint),
+        pytest.raises(OSError, match="No such device"),
+    ):
+        await listener.start()
+
+    sock.close.assert_called_once()
+    assert listener._transport is None
+
+
+@pytest.mark.unit
 async def test_udp_listener_stop_is_idempotent() -> None:
     """Calling stop() when no transport exists should be a no-op."""
     listener = UDPBalancerListener("234.222.250.1", 57082, serial=None)

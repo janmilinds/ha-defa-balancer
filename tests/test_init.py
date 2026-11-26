@@ -190,6 +190,27 @@ async def test_setup_stops_listener_when_platform_setup_raises(
     listener.stop.assert_awaited_once()
 
 
+@pytest.mark.integration
+async def test_setup_retries_when_listener_cannot_start(
+    hass: HomeAssistant,
+    enable_custom_integrations: None,
+) -> None:
+    """An OSError while opening the socket should retry setup instead of failing for good."""
+    entry = _mock_entry()
+    entry.add_to_hass(hass)
+
+    listener = _FakeUDPListener(packets=[])
+    listener.start.side_effect = OSError(19, "No such device")
+
+    with patch("custom_components.defa_balancer.UDPBalancerListener", return_value=listener):
+        assert not await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+    assert entry.state is ConfigEntryState.SETUP_RETRY
+    assert entry.reason == "Could not open the multicast socket: [Errno 19] No such device"
+    listener.wait_for_packet.assert_not_awaited()
+
+
 @pytest.mark.unit
 async def test_async_unload_entry_stops_listener_on_success(hass: HomeAssistant) -> None:
     """Test async_unload_entry stops listener when unload succeeds."""

@@ -58,6 +58,9 @@
     }
   },
   "exceptions": {
+    "cannot_listen": {
+      "message": "Could not open the multicast socket: {error}"
+    },
     "device_unreachable": {
       "message": "No data received from DEFA Balancer – check device is powered on and reachable."
     }

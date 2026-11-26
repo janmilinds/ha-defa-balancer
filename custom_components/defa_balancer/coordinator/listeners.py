@@ -77,19 +77,23 @@ class UDPBalancerListener(BalancerListener):
             return
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind((self._multicast_group, self._multicast_port))
+        try:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.bind((self._multicast_group, self._multicast_port))
 
-        # Use fixed-size ip_mreq layout for cross-platform compatibility.
-        mreq = struct.pack("=4s4s", socket.inet_aton(self._multicast_group), socket.inet_aton("0.0.0.0"))
-        sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-        sock.setblocking(False)
+            # Use fixed-size ip_mreq layout for cross-platform compatibility.
+            mreq = struct.pack("=4s4s", socket.inet_aton(self._multicast_group), socket.inet_aton("0.0.0.0"))
+            sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+            sock.setblocking(False)
 
-        loop = asyncio.get_running_loop()
-        transport, _ = await loop.create_datagram_endpoint(
-            lambda: _DatagramProtocol(self),
-            sock=sock,
-        )
+            loop = asyncio.get_running_loop()
+            transport, _ = await loop.create_datagram_endpoint(
+                lambda: _DatagramProtocol(self),
+                sock=sock,
+            )
+        except OSError:
+            sock.close()
+            raise
         self._transport = transport
         LOGGER.debug("UDP listener started for %s:%s", self._multicast_group, self._multicast_port)
 
