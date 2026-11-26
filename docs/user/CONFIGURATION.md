@@ -137,6 +137,7 @@ If sensors show "unavailable" after 15 seconds without updates (or stay "unknown
 - **Single network interface:** The listener joins the multicast group on the interface the operating system picks by default (`0.0.0.0`). On hosts with several network interfaces, it may listen on a different interface than the one the device is on.
 - **No energy dashboard support:** Sensors report instantaneous power (W), not energy (kWh). A Riemann integration helper can be used to create energy sensors.
 - **Fixed multicast address:** The multicast group and port are determined by the device firmware and cannot be changed.
+- **No authentication:** The device's packets are neither signed nor encrypted. Anyone on the same local network can send packets that Home Assistant accepts as readings from your device. Keep the device and Home Assistant on a network you trust.
 
 ## Diagnostic Data
 
