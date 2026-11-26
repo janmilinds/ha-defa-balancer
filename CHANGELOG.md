@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1] - 2026-11-26
+
+### Fixed
+
+- Home Assistant now retries setting up the integration when the network is not ready yet at startup, instead of stopping at "Failed to set up".
+- A failed setup attempt no longer leaves a network socket open.
+- Removing a device that was offline now also removes its "Device unreachable" repair. Repairs left behind by devices removed in earlier versions are cleared at startup.
+- The reason shown while setup is being retried is now the actual message instead of "None".
+- The integration now accepts only readings sent to the device's multicast group, not data sent directly to Home Assistant's port.
+
+### Changed
+
+- The documentation now notes that the device's packets are not authenticated, so the device and Home Assistant should be on a trusted network.
+
+---
+**Full Changelog**: https://github.com/janmilinds/ha-defa-balancer/compare/v1.0.0...v1.0.1
+
 ## [1.0.0] - 2026-04-12
 
 ### Added
