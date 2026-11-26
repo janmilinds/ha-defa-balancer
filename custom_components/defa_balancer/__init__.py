@@ -53,8 +53,25 @@ async def async_setup_entry(
     )
     await listener.start()
 
-    if not await listener.wait_for_packet(timeout=5.0):
+    # Not entry.async_on_unload: Home Assistant 2025.12 skips it when setup raises an unexpected error.
+    try:
+        await _async_setup_with_listener(hass, entry, listener)
+    except BaseException:
         await listener.stop()
+        raise
+
+    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+
+    return True
+
+
+async def _async_setup_with_listener(
+    hass: HomeAssistant,
+    entry: DEFABalancerConfigEntry,
+    listener: UDPBalancerListener,
+) -> None:
+    """Wait for the first packet, then set up the coordinator and the platforms."""
+    if not await listener.wait_for_packet(timeout=5.0):
         raise ConfigEntryNotReady(translation_domain=DOMAIN, translation_key="device_unreachable")
 
     coordinator = DEFABalancerDataUpdateCoordinator(
@@ -74,9 +91,6 @@ async def async_setup_entry(
     await coordinator.async_config_entry_first_refresh()
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
-
-    return True
 
 
 async def async_unload_entry(

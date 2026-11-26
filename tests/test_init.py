@@ -143,6 +143,53 @@ async def test_setup_retry_reason_is_translated_when_no_packets(
     assert entry.reason == "No data received from DEFA Balancer – check device is powered on and reachable"
 
 
+@pytest.mark.integration
+async def test_setup_stops_listener_when_first_refresh_fails(
+    hass: HomeAssistant,
+    enable_custom_integrations: None,
+) -> None:
+    """A failed first refresh should retry setup and release the listener."""
+    entry = _mock_entry()
+    entry.add_to_hass(hass)
+
+    listener = _FakeUDPListener(packets=[])
+
+    with patch("custom_components.defa_balancer.UDPBalancerListener", return_value=listener):
+        assert not await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+    assert entry.state is ConfigEntryState.SETUP_RETRY
+    listener.stop.assert_awaited_once()
+
+
+@pytest.mark.integration
+async def test_setup_stops_listener_when_platform_setup_raises(
+    hass: HomeAssistant,
+    enable_custom_integrations: None,
+) -> None:
+    """An unexpected error while forwarding platforms should release the listener."""
+    entry = _mock_entry()
+    entry.add_to_hass(hass)
+
+    listener = _FakeUDPListener(
+        packets=[BalancerPacket(serial=FAKE_SERIAL, l1=8.5, l2=7.2, l3=6.9, firmware="4.0.0")],
+    )
+
+    with (
+        patch("custom_components.defa_balancer.UDPBalancerListener", return_value=listener),
+        patch.object(
+            hass.config_entries,
+            "async_forward_entry_setups",
+            AsyncMock(side_effect=RuntimeError("platform failed")),
+        ),
+    ):
+        assert not await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+    assert entry.state is ConfigEntryState.SETUP_ERROR
+    listener.stop.assert_awaited_once()
+
+
 @pytest.mark.unit
 async def test_async_unload_entry_stops_listener_on_success(hass: HomeAssistant) -> None:
     """Test async_unload_entry stops listener when unload succeeds."""
