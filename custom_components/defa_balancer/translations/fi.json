@@ -58,6 +58,9 @@
     }
   },
   "exceptions": {
+    "cannot_listen": {
+      "message": "Multicast-socketia ei voitu avata: {error}"
+    },
     "device_unreachable": {
       "message": "DEFA Balancerista ei ole saatu dataa – tarkista, että laite on päällä ja kytkettynä verkkoon."
     }

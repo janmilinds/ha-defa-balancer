@@ -51,7 +51,14 @@ async def async_setup_entry(
         multicast_port=entry.data.get(CONF_MULTICAST_PORT, DEFAULT_MULTICAST_PORT),
         serial=entry.data.get(CONF_SERIAL),
     )
-    await listener.start()
+    try:
+        await listener.start()
+    except OSError as err:
+        raise ConfigEntryNotReady(
+            translation_domain=DOMAIN,
+            translation_key="cannot_listen",
+            translation_placeholders={"error": str(err)},
+        ) from err
 
     # Not entry.async_on_unload: Home Assistant 2025.12 skips it when setup raises an unexpected error.
     try:
