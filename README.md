@@ -7,7 +7,7 @@
 [![hacs][hacsbadge]][hacs]
 ![Project Maintenance][maintenance-shield]
 
-Monitor real-time phase currents and power consumption from your [DEFA Balancer](https://www.defa.com/) load management unit directly in Home Assistant.
+Monitor real-time phase currents and estimated power from your [DEFA Balancer](https://www.defa.com/) load management unit directly in Home Assistant.
 
 The DEFA Balancer is a load management module designed for EV charging installations. It continuously broadcasts electrical measurements over the local network, and this integration picks them up automatically — no cloud, no account, no polling.
 
@@ -15,20 +15,22 @@ The DEFA Balancer is a load management module designed for EV charging installat
 
 - **Automatic discovery** — finds the Balancer on your network, no IP or credentials needed
 - **Real-time data** — values updated every 10 seconds from live device broadcasts
-- **Per-phase monitoring** — individual current and power readings for L1, L2, and L3
+- **Per-phase monitoring** — current readings and estimated power for L1, L2, and L3
 - **Local only** — all communication stays on your local network
 
 ## Sensors
 
-| Sensor      | Unit | Description                      |
-| ----------- | ---- | -------------------------------- |
-| L1 Current  | A    | Phase 1 current                  |
-| L2 Current  | A    | Phase 2 current                  |
-| L3 Current  | A    | Phase 3 current                  |
-| L1 Power    | W    | Phase 1 power                    |
-| L2 Power    | W    | Phase 2 power                    |
-| L3 Power    | W    | Phase 3 power                    |
-| Total Power | W    | Combined power across all phases |
+| Sensor      | Unit | Description                                |
+| ----------- | ---- | ------------------------------------------ |
+| L1 Current  | A    | Phase 1 current                            |
+| L2 Current  | A    | Phase 2 current                            |
+| L3 Current  | A    | Phase 3 current                            |
+| L1 Power    | W    | Phase 1 power, estimated                   |
+| L2 Power    | W    | Phase 2 power, estimated                   |
+| L3 Power    | W    | Phase 3 power, estimated                   |
+| Total Power | W    | Combined estimated power across all phases |
+
+The Balancer measures current only. The power sensors are calculated as current × phase voltage, which gives apparent power rather than the active power your electricity meter measures — close for heaters and EV charging, up to about 40 % too high for heat pumps and electronics. They are good for following load and fuse headroom, not as an energy meter. Details: [power calculation](docs/user/CONFIGURATION.md#power-calculation).
 
 ## Requirements
 

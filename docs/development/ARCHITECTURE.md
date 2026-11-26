@@ -59,7 +59,7 @@ updates to all entities:
 
 - Updates every 10 seconds from device broadcasts
 - Aggregates an average over the most recent buffered packets (up to 25) for current values (L1, L2, L3)
-- Calculates phase power using 230V fixed voltage
+- Calculates phase power as current × the configured phase voltage (default 230 V)
 - Error handling (stale timeout after 15 seconds)
 - Shared data access for all entities
 - Automatic retry on failures
@@ -75,7 +75,7 @@ updates to all entities:
 The coordinator aggregates packet data to smooth out individual transmission noise:
 
 - **Ring buffer averaging**: Averages all buffered packets (up to 25) to reduce jitter in reported currents
-- **Power calculation**: Uses fixed 230V per-phase voltage (DEFA standard)
+- **Power calculation**: Current × configured phase voltage — apparent power, kept in W on purpose ([decision](decisions/20261126-power-sensors-stay-estimates.md))
 - **Stale timeout**: Marks unavailable after 15 seconds without data
 - **Packet buffering**: Maintains ring buffer of 25 latest packets
 

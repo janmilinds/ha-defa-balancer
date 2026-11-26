@@ -58,9 +58,24 @@ The DEFA Balancer uses a **push architecture** — data flows from device to Hom
 4. **Unavailability detection:** If no fresh packet arrives within 15 seconds, sensors are marked "unavailable"
 5. **Offline repair issue:** If the device remains unreachable for 60 seconds, a persistent repair issue is created to notify the user
 
-### Power Calculation
+### Power calculation
 
-Power values (W) are calculated from current (A) × phase voltage. The default phase voltage is 230V and can be adjusted per device in **Settings** → **Devices & Services** → DEFA Balancer → **Configure** (options flow).
+The DEFA Balancer measures current only. It does not measure voltage, and it cannot tell how the current relates to the voltage. The power sensors are therefore calculated as current (A) × phase voltage. The phase voltage is 230 V by default and can be changed per device in **Settings** > **Devices & services** > **DEFA Balancer** > **Configure**.
+
+The result is an estimate of **apparent power**, not the **active power** your electricity meter measures:
+
+- **Active power** (W) is the power that does work — heats, lights, turns a motor. Your electricity meter measures it, and it is what you pay for.
+- **Apparent power** (VA) is voltage × current. It also counts current that flows back and forth without doing any work, caused by motors, compressors and many electronic power supplies. Fuses and cables carry that current too.
+- The ratio between the two is the **power factor**. Heaters, water heaters and EV charging have a power factor close to 1, so the two are nearly equal. Heat pumps, compressors and electronics can be as low as 0.7–0.95, and then the reading is about 5–40 % above the active power.
+
+The actual grid voltage also differs from the configured one, usually by a few percent, and the reading moves with it.
+
+The sensors still use watts so that they work with power cards and the **Integral** helper. Read them as an estimate:
+
+- ✅ Good for following the load on each phase, fuse headroom, phase imbalance, and seeing when large loads switch on or off.
+- ❌ Not a substitute for your electricity meter. An energy sensor built with the **Integral** helper carries the same error.
+
+For accurate active power and energy, use a device built to measure them, such as a DIN-rail energy meter or a reader for your electricity meter's customer port. This integration does not aim to replace one; it gets more out of a load management unit you already have.
 
 ### Options
 
@@ -101,13 +116,15 @@ The integration creates the following sensors for each DEFA Balancer:
 - **L1 Current** (A) - Amperage on phase 1
 - **L2 Current** (A) - Amperage on phase 2
 - **L3 Current** (A) - Amperage on phase 3
-- **L1 Power** (W) - Calculated power on phase 1 (current × 230V)
-- **L2 Power** (W) - Calculated power on phase 2 (current × 230V)
-- **L3 Power** (W) - Calculated power on phase 3 (current × 230V)
+- **L1 Power** (W) - Estimated power on phase 1 (current × phase voltage)
+- **L2 Power** (W) - Estimated power on phase 2 (current × phase voltage)
+- **L3 Power** (W) - Estimated power on phase 3 (current × phase voltage)
 
 ### Total Sensor
 
 - **Total Power** (W) - Sum of L1, L2, and L3 power
+
+The power sensors are estimates of apparent power, not measured active power — see [Power calculation](#power-calculation).
 
 All values update every 10 seconds.
 
@@ -147,7 +164,7 @@ If sensors show "unavailable" after 15 seconds without updates (or stay "unknown
 
 ## Known Limitations
 
-- **Power measurement accuracy:** Power is calculated as `current × phase voltage`. The integration does not measure voltage or power factor. Actual power may differ slightly due to voltage variations (typically ±6% in Nordic grids) and reactive loads such as heat pumps or EV chargers. For typical household monitoring purposes the accuracy is sufficient.
+- **Power is estimated, not measured:** The Balancer measures current only, so the power sensors show current × phase voltage — apparent power. With heat pumps, compressors or electronics running, the reading can be up to about 40 % above the active power your electricity meter measures. This is a deliberate trade-off and the sensors will stay as they are; see [Power calculation](#power-calculation).
 - **Multicast only:** The device communicates via multicast UDP. Routed or VPN-connected Home Assistant instances that cannot receive multicast traffic will not work.
 - **IPv4 only:** IPv6 multicast is not supported.
 - **No device control:** The integration is read-only — it monitors current and power but cannot control the Balancer or connected chargers.
