@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import socket
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -183,6 +184,22 @@ async def test_udp_listener_start_is_idempotent() -> None:
     await listener.start()
     # Should return early without replacing the transport
     assert listener._transport is not None
+
+
+@pytest.mark.unit
+async def test_udp_listener_binds_to_multicast_group() -> None:
+    """The socket should bind to the group address so unicast datagrams are not accepted."""
+    listener = UDPBalancerListener("234.222.250.1", 57082, serial=None)
+    sock = MagicMock()
+    loop = asyncio.get_running_loop()
+
+    with (
+        patch("custom_components.defa_balancer.coordinator.listeners.socket.socket", return_value=sock),
+        patch.object(loop, "create_datagram_endpoint", AsyncMock(return_value=(MagicMock(), MagicMock()))),
+    ):
+        await listener.start()
+
+    sock.bind.assert_called_once_with(("234.222.250.1", 57082))
 
 
 @pytest.mark.unit
