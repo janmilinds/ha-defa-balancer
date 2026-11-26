@@ -192,7 +192,7 @@ automation:
 If the integration doesn't find your Balancer during the 10-second scan:
 
 1. Verify the DEFA Balancer is powered on and connected to the network
-2. Confirm Home Assistant is on the same subnet/VLAN
+2. Confirm Home Assistant is on the same subnet/VLAN, or that the Balancer's multicast traffic is forwarded to it — see [Home Assistant on a different VLAN](CONFIGURATION.md#home-assistant-on-a-different-vlan)
 3. Check if multicast traffic is allowed on your router
 4. Power-cycle the DEFA Balancer by turning it off and on again
 5. Try again — the integration will re-scan

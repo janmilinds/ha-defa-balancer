@@ -27,9 +27,26 @@ If you have a DEFA Balancer model not listed here, please report your experience
 
 For discovery and operation:
 
-- Home Assistant must be on the same subnet or VLAN as the DEFA Balancer
+- Home Assistant must receive the Balancer's multicast traffic to `234.222.250.1:57082`. The simplest way is to keep both on the same subnet or VLAN.
 - Multicast traffic to `234.222.250.1:57082` must be allowed (check router/firewall)
 - Both devices should be on IPv4 networks (IPv6 multicast not currently supported)
+
+### Home Assistant on a different VLAN
+
+The Balancer has no cloud service and no API that Home Assistant connects to. It sends its measurements as UDP multicast on its own network, and the integration only listens. There is no IP address to enter, and the integration cannot reach across a VLAN boundary by itself.
+
+Routers do not forward multicast between VLANs by default, so the network has to do it. You have two options:
+
+1. **Move the Balancer to the same VLAN as Home Assistant.** This needs no further configuration.
+2. **Forward the Balancer's multicast traffic to the Home Assistant VLAN.** This needs a multicast relay or multicast routing on your router, configured for group `234.222.250.1` and UDP port `57082`, and a firewall rule that allows that traffic from the Balancer's VLAN to Home Assistant. Forwarding in one direction, from the Balancer's VLAN to Home Assistant's, is enough.
+
+mDNS reflectors, such as Avahi or a router's "Multicast DNS" setting, do not help here. They forward only mDNS traffic on port `5353`.
+
+UniFi gateways have no setting that forwards this traffic between networks: IGMP snooping works within one network, the Multicast DNS proxy forwards only mDNS, and the IGMP proxy for IPTV takes its source from the WAN. Checked on a UniFi Cloud Gateway Ultra with UniFi Network 11.0.103. Run the relay on a separate host instead.
+
+Multicast routing forwards only packets whose time to live (TTL) is greater than 1. If routing is set up but no packets arrive, use a relay instead, because a relay sends the packets again.
+
+To confirm that the traffic arrives, run `tcpdump -v -i <interface> udp port 57082` on the Home Assistant host while the setup scan is running. With IGMP snooping on, the switch forwards multicast only to hosts that have joined the group. Home Assistant joins it during the scan and once the integration is set up.
 
 ## How Data Is Updated
 
