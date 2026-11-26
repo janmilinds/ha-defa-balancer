@@ -72,10 +72,12 @@ After successful setup, the integration creates:
 | L1 Current  | A    | Phase 1 current                  |
 | L2 Current  | A    | Phase 2 current                  |
 | L3 Current  | A    | Phase 3 current                  |
-| L1 Power    | W    | Phase 1 power (current × 230V)   |
-| L2 Power    | W    | Phase 2 power (current × 230V)   |
-| L3 Power    | W    | Phase 3 power (current × 230V)   |
+| L1 Power    | W    | Phase 1 power, estimated         |
+| L2 Power    | W    | Phase 2 power, estimated         |
+| L3 Power    | W    | Phase 3 power, estimated         |
 | Total Power | W    | Combined power across all phases |
+
+The power sensors are current × phase voltage, an estimate rather than a measurement — see [power calculation](CONFIGURATION.md#power-calculation).
 
 ## First Steps
 
@@ -160,6 +162,8 @@ automation:
 3. Select `sensor.defa_balancer_xxxx_total_power` as the input sensor
 4. Set method to **Trapezoidal** and precision to 2
 5. The resulting kWh sensor can be added to the Energy dashboard
+
+The energy sensor inherits the estimate's error, so expect it to read higher than your electricity meter when heat pumps or electronics run ([power calculation](CONFIGURATION.md#power-calculation)).
 
 **Track device availability** — log when the Balancer goes offline/online:
 

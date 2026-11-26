@@ -7,7 +7,9 @@ How to write one: the `blueprint-decisions` skill, `references/decision-records.
 
 ## In force
 
-None yet.
+| Record                                                                            | Decision                                                         | Rule                                                        |
+| --------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------- |
+| [20261126-power-sensors-stay-estimates](20261126-power-sensors-stay-estimates.md) | Keep the power sensors as watt estimates calculated from current | `.agents/instructions/defa_balancer.sensor.instructions.md` |
 
 ## History
 
