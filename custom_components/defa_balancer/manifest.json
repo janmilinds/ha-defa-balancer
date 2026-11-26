@@ -1,6 +1,10 @@
 {
   "domain": "defa_balancer",
   "name": "DEFA Balancer",
+  "categories": [
+    "energy.meters_monitoring",
+    "energy.ev_charging"
+  ],
   "codeowners": [
     "@janmilinds"
   ],

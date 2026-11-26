@@ -1,7 +1,5 @@
 """DataUpdateCoordinator for DEFA Balancer multicast data."""
 
-from __future__ import annotations
-
 from datetime import timedelta
 from logging import Logger
 from time import monotonic

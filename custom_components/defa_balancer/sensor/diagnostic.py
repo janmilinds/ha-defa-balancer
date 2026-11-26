@@ -1,7 +1,5 @@
 """DEFA Balancer diagnostic sensors."""
 
-from __future__ import annotations
-
 from typing import Any
 
 from custom_components.defa_balancer.const import DATA_FIRMWARE, DATA_PACKET_COUNT

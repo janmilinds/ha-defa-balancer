@@ -20,37 +20,39 @@ The DEFA Balancer is a load management module designed for EV charging installat
 
 ## Sensors
 
-| Sensor | Unit | Description |
-|---|---|---|
-| L1 Current | A | Phase 1 current |
-| L2 Current | A | Phase 2 current |
-| L3 Current | A | Phase 3 current |
-| L1 Power | W | Phase 1 power |
-| L2 Power | W | Phase 2 power |
-| L3 Power | W | Phase 3 power |
-| Total Power | W | Combined power across all phases |
+| Sensor      | Unit | Description                      |
+| ----------- | ---- | -------------------------------- |
+| L1 Current  | A    | Phase 1 current                  |
+| L2 Current  | A    | Phase 2 current                  |
+| L3 Current  | A    | Phase 3 current                  |
+| L1 Power    | W    | Phase 1 power                    |
+| L2 Power    | W    | Phase 2 power                    |
+| L3 Power    | W    | Phase 3 power                    |
+| Total Power | W    | Combined power across all phases |
 
 ## Requirements
 
-- Home Assistant 2025.12.3 or newer
+- Home Assistant 2026.11.0 or newer
 - DEFA Balancer connected to the same network/subnet/VLAN as Home Assistant, or its multicast traffic forwarded to Home Assistant's VLAN ([details](docs/user/CONFIGURATION.md#home-assistant-on-a-different-vlan))
 - Multicast UDP traffic to `234.222.250.1:57082` allowed on your network
 
 ## Installation
 
-### HACS (Recommended)
+### Marketplace (recommended)
 
-Prerequisite: [HACS](https://hacs.xyz/) is installed.
+In the Marketplace, search for "DEFA Balancer" and select **Download**.
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=janmilinds&repository=ha-defa-balancer&category=integration)
+<!-- ha-marketplace:exclude-start -->
 
-Or manually: open HACS, search for "DEFA Balancer", click "Download", and restart Home Assistant.
+[![Open your Home Assistant instance and open this repository in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=janmilinds&repository=ha-defa-balancer&category=integration)
 
 ### Manual
 
-1. Download the latest release from [GitHub](https://github.com/janmilinds/ha-defa-balancer/releases)
-2. Extract the `defa_balancer` folder to your `custom_components` directory
+1. Download `defa_balancer.zip` from the latest [release](https://github.com/janmilinds/ha-defa-balancer/releases)
+2. Extract it into a `custom_components/defa_balancer` folder in your Home Assistant configuration directory
 3. Restart Home Assistant
+
+<!-- ha-marketplace:exclude-end -->
 
 ## Setup
 
@@ -72,6 +74,8 @@ If no device is found during setup, check the following:
 
 For more detailed troubleshooting steps, see the [configuration documentation](docs/user/CONFIGURATION.md).
 
+<!-- ha-marketplace:exclude-start -->
+
 ## Contributing
 
 Contributions welcome — open an issue or pull request.
@@ -81,6 +85,8 @@ Contributions welcome — open an issue or pull request.
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/janmilinds/ha-defa-balancer?quickstart=1)
 
 Or locally with Docker and VS Code Dev Containers. See [`docs/development/`](docs/development/) for details.
+
+<!-- ha-marketplace:exclude-end -->
 
 ## License
 
@@ -96,4 +102,3 @@ MIT — see [LICENSE](LICENSE).
 [maintenance-shield]: https://img.shields.io/badge/maintainer-%40janmilinds-blue.svg?style=for-the-badge
 [releases-shield]: https://img.shields.io/github/release/janmilinds/ha-defa-balancer.svg?style=for-the-badge
 [releases]: https://github.com/janmilinds/ha-defa-balancer/releases
-[user_profile]: https://github.com/janmilinds

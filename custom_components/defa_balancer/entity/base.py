@@ -1,7 +1,5 @@
 """Base entity class for defa_balancer."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from custom_components.defa_balancer.const import CONF_SERIAL, DOMAIN

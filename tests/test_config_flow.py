@@ -1,12 +1,10 @@
 """Tests for DEFA Balancer config flow."""
 
-from __future__ import annotations
-
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.defa_balancer.api import BalancerPacket
 from custom_components.defa_balancer.config_flow_handler.config_flow import DEFABalancerConfigFlowHandler

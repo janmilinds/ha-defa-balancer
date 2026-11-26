@@ -19,6 +19,19 @@ aiohttp>=3.8.0
 async-timeout>=4.0.0
 ```
 
+### `package.json` - Node.js Development Tools
+
+**Purpose:** JavaScript/Node.js tools used for Markdown formatting and linting
+**Installed by:** `script/setup/bootstrap` via `npm install`
+**Used by:** Developers, IDEs, pre-commit hooks
+
+**Includes:**
+
+- `prettier` - Markdown formatter (also used by `esbenp.prettier-vscode` VS Code extension)
+- `markdownlint-cli2` - Markdown linter (also used by `davidanson.vscode-markdownlint` VS Code extension)
+
+**Note:** These tools are the CLI counterparts of the VS Code extensions already installed in the devcontainer. Having both ensures IDE and CI/pre-commit behaviour is identical.
+
 ### `requirements_dev.txt` - Development Tools
 
 **Purpose:** Additional development tools beyond what Home Assistant core provides
@@ -41,7 +54,7 @@ async-timeout>=4.0.0
 
 **Includes:**
 
-- `pytest-homeassistant-custom-component` - Additional fixtures and utilities for custom component testing
+- `pytest-homeassistant` - Test fixtures from Home Assistant Core, one release per Home Assistant version
 
 **Note:** Core testing tools (pytest, pytest-asyncio, pytest-aiohttp, pytest-cov, pytest-timeout, pytest-xdist, coverage, freezegun, requests-mock, respx) are already provided by Home Assistant core's `requirements_test.txt`, which is installed automatically via `script/setup/bootstrap`.
 
@@ -62,11 +75,12 @@ async-timeout>=4.0.0
 
 ### When to add dependencies
 
-| Add to | When |
-|--------|------|
-| `manifest.json` + `requirements.txt` | Runtime dependency (end users need it) |
-| `requirements_dev.txt` | Development tool (linting, formatting, type checking) |
-| `requirements_test.txt` | Testing tool (pytest plugins, test utilities) |
+| Add to                               | When                                                         |
+| ------------------------------------ | ------------------------------------------------------------ |
+| `manifest.json` + `requirements.txt` | Runtime dependency (end users need it)                       |
+| `requirements_dev.txt`               | Python development tool (linting, formatting, type checking) |
+| `requirements_test.txt`              | Testing tool (pytest plugins, test utilities)                |
+| `package.json`                       | Node.js development tool (Markdown formatting/linting)       |
 
 ## 📝 Maintenance
 
@@ -121,6 +135,7 @@ The `script/setup/bootstrap` automatically installs dependencies from multiple s
 - `requirements_dev.txt` - Additional development tools this project uses (pyright, colorlog, performance packages)
 - `requirements_test.txt` - Custom component testing utilities
 - `requirements.txt` - This integration's runtime dependencies (if any)
+- `package.json` - Node.js tools for Markdown linting/formatting (prettier, markdownlint-cli2)
 
 This approach means this project only needs to maintain a minimal set of dependencies that are specific to this integration, while leveraging the comprehensive dependency management from Home Assistant core.
 
@@ -137,8 +152,8 @@ This approach means this project only needs to maintain a minimal set of depende
 ```
 
 - ❌ **No Python dependencies** - only metadata
-- ✅ Minimum Home Assistant version
-- ✅ Minimum HACS version
+- ✅ Minimum Home Assistant version, read by the Marketplace (Home Assistant 2026.11+) and by HACS
+- ✅ Minimum HACS version, only compared by HACS before 2026.11 — keep it while `homeassistant` is older than that
 
 ### manifest.json
 
@@ -151,4 +166,4 @@ This approach means this project only needs to maintain a minimal set of depende
 - ✅ **Python package dependencies**
 - ✅ Installed by Home Assistant
 
-**No duplication needed!** `hacs.json` only contains version constraints for HA/HACS, not Python packages.
+**No duplication needed!** `hacs.json` only contains version constraints for Home Assistant and HACS, not Python packages.

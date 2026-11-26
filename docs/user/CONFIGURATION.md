@@ -16,9 +16,9 @@ The DEFA Balancer uses automatic network discovery. When you add the integration
 
 All DEFA Balancer devices that broadcast via multicast UDP should be compatible. The integration communicates using the standard Balancer multicast protocol.
 
-| Part Number | Device | Status |
-| --- | --- | --- |
-| P/N: 715004 | DEFA Balancer | Verified |
+| Part Number | Device          | Status                |
+| ----------- | --------------- | --------------------- |
+| P/N: 715004 | DEFA Balancer   | Verified              |
 | P/N: 715008 | DEFA Balancer S | Compatible (untested) |
 
 If you have a DEFA Balancer model not listed here, please report your experience via [GitHub Issues](https://github.com/janmilinds/ha-defa-balancer/issues).
@@ -64,9 +64,9 @@ Power values (W) are calculated from current (A) × phase voltage. The default p
 
 ### Options
 
-| Option | Default | Range | Description |
-| --- | --- | --- | --- |
-| Phase voltage | 230 V | 100–250 V | Voltage used for power calculation |
+| Option        | Default | Range     | Description                        |
+| ------------- | ------- | --------- | ---------------------------------- |
+| Phase voltage | 230 V   | 100–250 V | Voltage used for power calculation |
 
 ## Entity Customization
 
@@ -182,9 +182,8 @@ This removes the config entry and all associated entities. Automations referenci
 ### Uninstall the Integration Completely
 
 1. Remove all DEFA Balancer config entries (see above)
-2. If installed via HACS:
-   - Open HACS → **Integrations**
-   - Find "DEFA Balancer" → click the three dots → **Remove**
+2. If installed through the Marketplace:
+   - Open the **Marketplace**, find "DEFA Balancer" and remove it
 3. If installed manually:
    - Delete the `custom_components/defa_balancer/` directory
 4. Restart Home Assistant

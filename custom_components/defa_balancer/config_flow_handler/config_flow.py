@@ -1,11 +1,9 @@
 """Config flow for DEFA Balancer."""
 
-from __future__ import annotations
-
 import asyncio
 from typing import Any
 
-import voluptuous as vol
+import probatio
 
 from custom_components.defa_balancer.const import (
     CONF_MULTICAST_GROUP,
@@ -58,9 +56,9 @@ class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self,
         user_input: dict[str, Any] | None = None,
     ) -> config_entries.ConfigFlowResult:
-        """Start scanning, or create entry for a pre-selected serial.
+        """Start scanning, or create entry for a preselected serial.
 
-        When called with a pre-selected serial (from multi-device setup),
+        When called with a preselected serial (from multi-device setup),
         skip scanning and create the entry directly.
         """
         if self._scan_task is not None and not self._scan_task.done():
@@ -140,9 +138,11 @@ class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         options = [SelectOptionDict(value=s, label=f"DEFA Balancer \u2013 {s}") for s in available]
         return self.async_show_form(
             step_id="select",
-            data_schema=vol.Schema(
+            data_schema=probatio.Schema(
                 {
-                    vol.Required(CONF_SERIAL): SelectSelector(SelectSelectorConfig(options=options, multiple=False)),
+                    probatio.Required(CONF_SERIAL): SelectSelector(
+                        SelectSelectorConfig(options=options, multiple=False)
+                    ),
                 }
             ),
             description_placeholders={"count": str(len(available))},
@@ -179,7 +179,7 @@ class DEFABalancerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="connection_error",
-            data_schema=vol.Schema({}),
+            data_schema=probatio.Schema({}),
             errors={"base": self._scan_error or "cannot_connect"},
         )
 

@@ -1,7 +1,5 @@
 """DEFA Balancer current and power sensors."""
 
-from __future__ import annotations
-
 from custom_components.defa_balancer.const import (
     DATA_L1,
     DATA_L1_POWER,

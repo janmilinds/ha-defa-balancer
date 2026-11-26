@@ -1,0 +1,10 @@
+{
+  "identity": {
+    "domain": "defa_balancer",
+    "title": "DEFA Balancer",
+    "prefix": "DEFABalancer",
+    "owner": "janmilinds",
+    "repository": "ha-defa-balancer",
+    "author": "Jan Lindström"
+  }
+}

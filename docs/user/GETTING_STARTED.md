@@ -4,8 +4,7 @@ This guide will help you install and set up the DEFA Balancer custom integration
 
 ## Prerequisites
 
-- Home Assistant 2025.12.3 or newer
-- HACS (Home Assistant Community Store) installed
+- Home Assistant 2026.11.0 or newer
 - DEFA Balancer device on the same network as Home Assistant
 - Multicast UDP traffic to group `234.222.250.1` on port `57082` allowed on your network
 
@@ -15,25 +14,17 @@ The integration is designed to work with DEFA Balancer devices that broadcast th
 
 ## Installation
 
-### Via HACS (Recommended)
+### Via the Marketplace (recommended)
 
-1. Open HACS in your Home Assistant instance
-2. Go to "Integrations"
-3. Click the three dots in the top right corner
-4. Select "Custom repositories"
-5. Add this repository URL: `https://github.com/janmilinds/ha-defa-balancer`
-6. Set category to "Integration"
-7. Click "Add"
-8. Find "DEFA Balancer" in the integration list
-9. Click "Download"
-10. Restart Home Assistant
+1. In Home Assistant, open the **Marketplace**
+2. Search for "DEFA Balancer"
+3. Select **Download**
 
 ### Manual Installation
 
-1. Download the latest release from the [releases page](https://github.com/janmilinds/ha-defa-balancer/releases)
-2. Extract the `defa_balancer` folder from the archive
-3. Copy it to `custom_components/defa_balancer/` in your Home Assistant configuration directory
-4. Restart Home Assistant
+1. Download `defa_balancer.zip` from the latest release on the [releases page](https://github.com/janmilinds/ha-defa-balancer/releases)
+2. Extract it into `custom_components/defa_balancer/` in your Home Assistant configuration directory
+3. Restart Home Assistant
 
 ## Initial Setup
 
@@ -76,15 +67,15 @@ After successful setup, the integration creates:
 
 ### Sensors
 
-| Entity | Unit | Description |
-| --- | --- | --- |
-| L1 Current | A | Phase 1 current |
-| L2 Current | A | Phase 2 current |
-| L3 Current | A | Phase 3 current |
-| L1 Power | W | Phase 1 power (current × 230V) |
-| L2 Power | W | Phase 2 power (current × 230V) |
-| L3 Power | W | Phase 3 power (current × 230V) |
-| Total Power | W | Combined power across all phases |
+| Entity      | Unit | Description                      |
+| ----------- | ---- | -------------------------------- |
+| L1 Current  | A    | Phase 1 current                  |
+| L2 Current  | A    | Phase 2 current                  |
+| L3 Current  | A    | Phase 3 current                  |
+| L1 Power    | W    | Phase 1 power (current × 230V)   |
+| L2 Power    | W    | Phase 2 power (current × 230V)   |
+| L3 Power    | W    | Phase 3 power (current × 230V)   |
+| Total Power | W    | Combined power across all phases |
 
 ## First Steps
 
@@ -138,9 +129,9 @@ automation:
 4. Set name to e.g. "Total Power (kW)"
 5. In State use the following template:
 
-    ```yaml
-    {{ (states('sensor.defa_balancer_xxxx_total_power') | float / 1000) | round(2) }}
-    ```
+   ```yaml
+   { { (states('sensor.defa_balancer_xxxx_total_power') | float / 1000) | round(2) } }
+   ```
 
 6. Set Unit of measurement to "kW", Device class to "power", and State class to "measurement"
 7. Set your DEFA Balancer device as linked device

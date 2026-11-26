@@ -1,7 +1,5 @@
 """Runtime data types for defa_balancer config entries."""
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 

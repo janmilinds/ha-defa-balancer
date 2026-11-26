@@ -1,7 +1,5 @@
 """Listener abstractions and UDP multicast implementation."""
 
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
 import asyncio
 from collections import deque

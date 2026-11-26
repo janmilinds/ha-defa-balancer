@@ -1,7 +1,5 @@
 """Packet models and parser for DEFA Balancer UDP data."""
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 
 from custom_components.defa_balancer.const import PACKET_LENGTH

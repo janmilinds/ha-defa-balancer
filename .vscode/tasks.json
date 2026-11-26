@@ -14,6 +14,58 @@
       "isBackground": true
     },
     {
+      "label": "Run Home Assistant (Environment)",
+      "type": "shell",
+      "command": "./script/develop --env ${input:haEnvironment} --force",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": [],
+      "isBackground": true
+    },
+    {
+      "label": "Switch Home Assistant Environment",
+      "type": "shell",
+      "command": "./script/ha-env use ${input:haEnvironment}",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Add Home Assistant Environment",
+      "type": "shell",
+      "command": "./script/ha-env add ${input:haOptionalEnvironment}",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Pin Home Assistant Version (custom Environment)",
+      "type": "shell",
+      "command": "./script/ha-env add custom ${input:haCustomVersion}",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Refresh Home Assistant Environments",
+      "type": "shell",
+      "command": "./script/ha-env refresh",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "Run Tests",
       "type": "shell",
       "command": "./script/test -v",
@@ -21,6 +73,28 @@
         "kind": "test",
         "isDefault": true
       },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Changed Tests",
+      "type": "shell",
+      "command": "./script/test -v --picked",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Update Test Snapshots",
+      "type": "shell",
+      "command": "./script/test --snapshot-update",
+      "group": "test",
       "presentation": {
         "reveal": "always",
         "panel": "new"
@@ -154,13 +228,34 @@
     {
       "label": "Validate Manifest",
       "type": "shell",
-      "command": "${command:python.interpreterPath} -c \"import json; json.load(open('custom_components/defa_balancer/manifest.json')); print('✅ manifest.json is valid')\"",
+      "command": "bash -c 'source script/.lib/integration.sh && jq -e objects \"$INTEGRATION_PATH/manifest.json\" >/dev/null && echo \"✅ manifest.json is valid\"'",
       "group": "test",
       "presentation": {
         "reveal": "always",
         "panel": "new"
       },
       "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "haEnvironment",
+      "type": "pickString",
+      "description": "Home Assistant environment to switch to",
+      "options": ["minimum", "latest", "beta", "custom"],
+      "default": "minimum"
+    },
+    {
+      "id": "haOptionalEnvironment",
+      "type": "pickString",
+      "description": "Home Assistant environment to install",
+      "options": ["latest", "beta"],
+      "default": "beta"
+    },
+    {
+      "id": "haCustomVersion",
+      "type": "promptString",
+      "description": "Home Assistant version for the custom environment, from the hacs.json minimum on (e.g. 2026.11.1 or 2026.12.0b3)"
     }
   ]
 }
