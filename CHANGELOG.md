@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0](https://github.com/janmilinds/ha-defa-balancer/compare/v1.0.1...v1.1.0) (2026-11-27)
+
+
+### 🎉 What's new
+
+* require Home Assistant 2026.11 and adopt the current integration blueprint ([dd6429c](https://github.com/janmilinds/ha-defa-balancer/commit/dd6429c53054ab338f0d39ddb62a37fc300bcdcc))
+
 ## [1.0.1] - 2026-11-26
 
 ### Fixed
