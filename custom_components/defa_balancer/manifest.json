@@ -13,5 +13,5 @@
   "integration_type": "device",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/janmilinds/ha-defa-balancer/issues",
-  "version": "1.0.1"
+  "version": "1.1.0"
 }
