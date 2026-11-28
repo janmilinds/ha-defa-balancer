@@ -77,7 +77,7 @@ class UDPBalancerListener(BalancerListener):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         try:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            sock.bind((self._multicast_group, self._multicast_port))
+            sock.bind(("", self._multicast_port))
 
             # Use fixed-size ip_mreq layout for cross-platform compatibility.
             mreq = struct.pack("=4s4s", socket.inet_aton(self._multicast_group), socket.inet_aton("0.0.0.0"))
